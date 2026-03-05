@@ -2,6 +2,9 @@
 database/kpi_system_complete.sql
 database/kpi_system_backup_*.sql
 
+# Data folder (Excel files - private)
+data/
+
 # IDE and Editor files
 .vscode/
 .idea/
