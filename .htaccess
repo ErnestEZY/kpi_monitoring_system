@@ -1,0 +1,43 @@
+# KPI Monitoring System - Apache Configuration
+
+# Set default index file to index.php (redirects to login)
+DirectoryIndex index.php index.html
+
+# Security: Prevent directory listing
+Options -Indexes
+
+# Security: Protect sensitive files
+<FilesMatch "^(\.htaccess|\.gitignore|composer\.json|composer\.lock|README\.md)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Security: Protect config files
+<FilesMatch "^(config|database)\.php$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Enable error reporting (disable in production)
+php_flag display_errors On
+php_value error_reporting E_ALL
+
+# Set timezone
+php_value date.timezone "Asia/Kuala_Lumpur"
+
+# Increase upload limits
+php_value upload_max_filesize 10M
+php_value post_max_size 10M
+
+# Session settings
+php_value session.gc_maxlifetime 1800
+php_flag session.cookie_httponly On
+
+# Enable URL rewriting (if needed)
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /kpi_system/
+    
+    # Redirect old index.html to index.php
+    RewriteRule ^index\.html$ index.php [L,R=301]
+</IfModule>
