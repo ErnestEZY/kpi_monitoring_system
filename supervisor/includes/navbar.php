@@ -1,0 +1,28 @@
+<?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+$supervisor_name = $_SESSION['supervisor_name'] ?? 'Supervisor';
+?>
+<nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
+    <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3" href="dashboard.php">
+        <i class="bi bi-graph-up-arrow"></i> KPI Monitor
+    </a>
+    <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" 
+            data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="navbar-nav flex-row ms-auto">
+        <div class="nav-item dropdown">
+            <a class="nav-link px-3 dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" 
+               data-bs-toggle="dropdown" aria-expanded="false" style="white-space: nowrap;">
+                <i class="bi bi-person-circle me-1"></i> <?= htmlspecialchars($supervisor_name) ?>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="userDropdown">
+                <li><a class="dropdown-item" href="../auth/logout.php">
+                    <i class="bi bi-box-arrow-right me-2"></i> Logout
+                </a></li>
+            </ul>
+        </div>
+    </div>
+</nav>

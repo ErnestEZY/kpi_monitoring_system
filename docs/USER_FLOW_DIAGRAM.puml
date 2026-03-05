@@ -1,0 +1,237 @@
+@startuml KPI_System_User_Flow
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+
+title Sales Assistant KPI Monitoring System - User Flow Diagram
+
+|Supervisor|
+start
+
+:Access System\n(http://localhost/kpi_system);
+
+:Login Page\n(Username & Password);
+note right
+  Default Credentials:
+  - admin / admin123
+  - manager1 / pass123
+  - super1 / super123
+end note
+
+if (Authentication\nSuccessful?) then (yes)
+  :Navigate to Dashboard;
+  
+  partition "Main Navigation" {
+    
+    fork
+      :Dashboard\n(Overview & Metrics);
+      note right
+        - Total Staff Count
+        - Average Performance
+        - Top Performers List
+        - At-Risk Staff Alerts
+        - Performance Distribution
+        - Level Indicators
+      end note
+      
+    fork again
+      :KPI Dashboard\n(Score Management);
+      note right
+        - View All 21 KPIs
+        - Record KPI Scores
+        - Filter by Staff & Year
+        - Bulk Score Entry
+        - Score Validation
+      end note
+      
+    fork again
+      :All Staff\n(Staff List);
+      note right
+        - DataTables View
+        - Search & Filter
+        - View Profile
+        - Add Scores
+        - Status Indicators
+      end note
+      
+    fork again
+      :Analytics\n(Interactive Analysis);
+      note right
+        - Department Comparison
+        - Year-over-Year Trends
+        - Category Breakdown
+        - Drill-down Analysis
+        - Export to Excel/PDF
+      end note
+      
+    end fork
+  }
+  
+  partition "Reports Section" {
+    
+    fork
+      :Top Performers Report;
+      note right
+        - High Achievers List
+        - Performance Metrics
+        - Recognition Candidates
+      end note
+      
+    fork again
+      :At-Risk Staff Report;
+      note right
+        - Low Performers
+        - Risk Classification
+        - Intervention Needed
+      end note
+      
+    fork again
+      :Training Needs Report;
+      note right
+        - Skill Gap Analysis
+        - Training Requirements
+        - Development Plans
+      end note
+      
+    end fork
+  }
+  
+  partition "Advanced Analytics (4 Innovative Features)" {
+    
+    fork
+      :Predictive Alerts\n(Feature 1);
+      note right
+        **Linear Regression Prediction**
+        - Analyze Historical Trends
+        - Predict Future Performance
+        - Confidence Scoring (65-95%)
+        - Risk Classification
+        - Trend Direction
+        - Recommended Actions
+      end note
+      
+    fork again
+      :Training Recommendations\n(Feature 2);
+      note right
+        **Smart Matching Algorithm**
+        - Identify Skill Gaps
+        - 6 Training Programs
+        - Compatibility Scoring
+        - Priority Ranking
+        - Prerequisites Check
+        - Expected Outcomes
+      end note
+      
+    fork again
+      :Anomaly Detection\n(Feature 3);
+      note right
+        **AI-Powered Pattern Recognition**
+        - Detect Spikes/Drops
+        - Consecutive Declines
+        - Category Anomalies
+        - Auto-Narrative Generation
+        - KPI Category Analysis
+        - Actionable Insights
+      end note
+      
+    fork again
+      :Peer Comparison\n(Feature 4);
+      note right
+        **Intelligent Matching**
+        - Best Match Algorithm
+        - Similarity Scoring
+        - Radar Chart Comparison
+        - Multiple Modes
+        - AI-Generated Insights
+        - Similar Peers List
+      end note
+      
+    end fork
+  }
+  
+  partition "Staff Profile Actions" {
+    :Select Staff Member;
+    
+    :View Staff Profile;
+    note right
+      **Profile Components:**
+      - Overall Performance Score
+      - Performance Trend Chart
+      - KPI Category Breakdown
+      - Progress Bars with Milestones
+      - Achievement Notifications
+      - Supervisor Comments History
+      - Smart Comment Assistant
+    end note
+    
+    fork
+      :Add/Edit KPI Scores;
+      
+    fork again
+      :Add Supervisor Comment;
+      note right
+        **Smart Comment Assistant**
+        (Alpine.js Component)
+        - Quick Templates
+        - Auto-save Feature
+        - Character Counter
+        - Live Preview
+        - Training Recommendations
+      end note
+      
+    fork again
+      :View Performance Trend;
+      
+    fork again
+      :Compare with Peers;
+      
+    end fork
+  }
+  
+  :Logout;
+  
+else (no)
+  :Show Error Message;
+  :Return to Login;
+  stop
+endif
+
+stop
+
+legend right
+  **System Features Summary**
+  
+  **Core Features:**
+  - Authentication & Session Management
+  - Dashboard with Real-time Metrics
+  - KPI Management (21 KPIs)
+  - Staff Profiles with Progress Bars
+  - Interactive Analytics
+  - Performance Reports
+  - Supervisor Comments
+  
+  **4 Innovative Features:**
+  1. Predictive Performance Alerts
+  2. Smart Training Recommendations
+  3. Anomaly Detection + Auto-Narrative
+  4. Advanced Peer Comparison
+  
+  **Technology Stack:**
+  - PHP 7.4+ with PDO
+  - MySQL 5.7+
+  - Bootstrap 5.3.0
+  - Chart.js 4.4.0
+  - jQuery 3.7.1
+  - DataTables.js 1.13.7
+  - SweetAlert2 11.x
+  - Alpine.js 3.x (Smart Comment Assistant)
+  
+  **Gamified Visualizations:**
+  - Progress Bars with Achievement Milestones
+  - Color-Coded Level Indicators
+  - Animated Counters
+  - Achievement Notifications
+end legend
+
+@enduml
