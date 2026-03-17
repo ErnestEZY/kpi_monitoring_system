@@ -38,6 +38,10 @@ switch ($action) {
         saveComment($pdo);
         break;
     
+    case 'save_scores':
+        saveScores($pdo);
+        break;
+    
     case 'get_years':
         getYears($pdo);
         break;
@@ -371,5 +375,101 @@ function getYears($pdo) {
         
     } catch (PDOException $e) {
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    }
+}
+
+/**
+ * Save KPI scores for a staff member
+ */
+function saveScores($pdo) {
+    try {
+        // Get JSON input
+        $input = json_decode(file_get_contents('php://input'), true);
+        
+        if (!$input) {
+            echo json_encode(['success' => false, 'message' => 'Invalid input data']);
+            return;
+        }
+        
+        $staff_id = $input['staff_id'] ?? null;
+        $evaluation_year = $input['evaluation_year'] ?? null;
+        $evaluation_date = $input['evaluation_date'] ?? date('Y-m-d');
+        $scores = $input['scores'] ?? [];
+        
+        if (!$staff_id || !$evaluation_year || empty($scores)) {
+            echo json_encode(['success' => false, 'message' => 'Missing required fields']);
+            return;
+        }
+        
+        // Start transaction
+        $pdo->beginTransaction();
+        
+        $saved_count = 0;
+        $errors = [];
+        
+        foreach ($scores as $kpi_code => $score) {
+            // Validate score
+            if ($score < 1 || $score > 5) {
+                $errors[] = "Invalid score for $kpi_code: $score";
+                continue;
+            }
+            
+            // Get KPI weight
+            $stmt = $pdo->prepare("SELECT weight_percentage FROM kpi_master WHERE kpi_code = ?");
+            $stmt->execute([$kpi_code]);
+            $kpi = $stmt->fetch();
+            
+            if (!$kpi) {
+                $errors[] = "KPI not found: $kpi_code";
+                continue;
+            }
+            
+            // Calculate weighted score
+            $weighted_score = ($score / 5) * ($kpi['weight_percentage'] / 100);
+            
+            // Insert or update score
+            $sql = "INSERT INTO kpi_scores (staff_id, kpi_code, evaluation_date, evaluation_year, score, weighted_score)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                    ON DUPLICATE KEY UPDATE 
+                        score = VALUES(score),
+                        weighted_score = VALUES(weighted_score),
+                        updated_at = CURRENT_TIMESTAMP";
+            
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([
+                $staff_id,
+                $kpi_code,
+                $evaluation_date,
+                $evaluation_year,
+                $score,
+                $weighted_score
+            ]);
+            
+            $saved_count++;
+        }
+        
+        // Commit transaction
+        $pdo->commit();
+        
+        $response = [
+            'success' => true,
+            'message' => "Successfully saved $saved_count KPI scores",
+            'saved_count' => $saved_count
+        ];
+        
+        if (!empty($errors)) {
+            $response['warnings'] = $errors;
+        }
+        
+        echo json_encode($response);
+        
+    } catch (Exception $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        echo json_encode([
+            'success' => false,
+            'message' => 'Error saving scores: ' . $e->getMessage()
+        ]);
     }
 }

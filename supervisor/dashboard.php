@@ -112,7 +112,11 @@ $available_years = $stmt->fetchAll(PDO::FETCH_COLUMN);
                 <!-- Summary Cards -->
                 <div class="row mb-4">
                     <div class="col-xl-3 col-md-6 mb-4">
-                        <div class="card border-left-primary shadow h-100 py-2">
+                        <div class="card border-left-primary shadow h-100 py-2 clickable-card" 
+                             onclick="window.location.href='staff_list.php'"
+                             data-bs-toggle="tooltip" 
+                             data-bs-placement="top" 
+                             title="View all staff members and their performance details">
                             <div class="card-body">
                                 <div class="row no-gutters align-items-center">
                                     <div class="col mr-2">
@@ -131,7 +135,11 @@ $available_years = $stmt->fetchAll(PDO::FETCH_COLUMN);
                     </div>
 
                     <div class="col-xl-3 col-md-6 mb-4">
-                        <div class="card border-left-success shadow h-100 py-2">
+                        <div class="card border-left-success shadow h-100 py-2 clickable-card" 
+                             onclick="window.location.href='reports.php?type=top_performers'"
+                             data-bs-toggle="tooltip" 
+                             data-bs-placement="top" 
+                             title="View staff with scores ≥85% - Click to see detailed report">
                             <div class="card-body">
                                 <div class="row no-gutters align-items-center">
                                     <div class="col mr-2">
@@ -150,7 +158,11 @@ $available_years = $stmt->fetchAll(PDO::FETCH_COLUMN);
                     </div>
 
                     <div class="col-xl-3 col-md-6 mb-4">
-                        <div class="card border-left-warning shadow h-100 py-2">
+                        <div class="card border-left-warning shadow h-100 py-2 clickable-card" 
+                             onclick="window.location.href='reports.php?type=at_risk'"
+                             data-bs-toggle="tooltip" 
+                             data-bs-placement="top" 
+                             title="Staff requiring immediate attention - Click to see who needs support">
                             <div class="card-body">
                                 <div class="row no-gutters align-items-center">
                                     <div class="col mr-2">
@@ -169,7 +181,11 @@ $available_years = $stmt->fetchAll(PDO::FETCH_COLUMN);
                     </div>
 
                     <div class="col-xl-3 col-md-6 mb-4">
-                        <div class="card border-left-info shadow h-100 py-2">
+                        <div class="card border-left-info shadow h-100 py-2 clickable-card" 
+                             onclick="window.location.href='analytics.php'"
+                             data-bs-toggle="tooltip" 
+                             data-bs-placement="top" 
+                             title="Team average performance score - Click for detailed analytics">
                             <div class="card-body">
                                 <div class="row no-gutters align-items-center">
                                     <div class="col mr-2">
@@ -197,6 +213,28 @@ $available_years = $stmt->fetchAll(PDO::FETCH_COLUMN);
                         </div>
                     </div>
                 </div>
+
+                <!-- Attention Required Section -->
+                <?php if (!empty($at_risk_staff)): ?>
+                <div class="alert alert-warning alert-dismissible fade show shadow" role="alert">
+                    <h5 class="alert-heading"><i class="bi bi-exclamation-triangle-fill"></i> Attention Required</h5>
+                    <p><strong><?= count($at_risk_staff) ?></strong> staff member(s) require immediate attention:</p>
+                    <ul class="mb-0">
+                        <?php foreach (array_slice($at_risk_staff, 0, 5) as $staff): ?>
+                            <li>
+                                <strong><?= htmlspecialchars($staff['full_name']) ?></strong> 
+                                (<?= $staff['current_score'] ?>%) - <?= $staff['reason'] ?>
+                                <a href="staff_profile.php?id=<?= $staff['staff_id'] ?>" class="alert-link">View Profile</a>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                    <?php if (count($at_risk_staff) > 5): ?>
+                        <hr>
+                        <a href="reports.php?type=at_risk" class="alert-link">View all <?= count($at_risk_staff) ?> at-risk staff →</a>
+                    <?php endif; ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                <?php endif; ?>
 
                 <!-- Performance Level Distribution (Gamified Visualization) -->
                 <div class="row mb-4">
@@ -280,15 +318,18 @@ $available_years = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
                     <div class="col-lg-6">
                         <div class="card shadow mb-4">
-                            <div class="card-header py-3">
-                                <h6 class="m-0 font-weight-bold text-primary">Top Performers (<?= $selected_year ?>)</h6>
+                            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                                <h6 class="m-0 font-weight-bold text-primary">Top Performers & At-Risk Staff</h6>
+                                <small class="text-muted"><?= $selected_year ?></small>
                             </div>
                             <div class="card-body">
+                                <!-- Top Performers -->
+                                <h6 class="text-success mb-3"><i class="bi bi-trophy-fill"></i> Top Performers (≥85%)</h6>
                                 <?php if (empty($top_performers)): ?>
-                                    <p class="text-muted">No top performers for this period.</p>
+                                    <p class="text-muted small">No top performers for this period.</p>
                                 <?php else: ?>
-                                    <div class="list-group">
-                                        <?php foreach (array_slice($top_performers, 0, 5) as $performer): ?>
+                                    <div class="list-group mb-4">
+                                        <?php foreach (array_slice($top_performers, 0, 3) as $performer): ?>
                                             <a href="staff_profile.php?id=<?= $performer['staff_id'] ?>" 
                                                class="list-group-item list-group-item-action">
                                                 <div class="d-flex w-100 justify-content-between">
@@ -300,31 +341,29 @@ $available_years = $stmt->fetchAll(PDO::FETCH_COLUMN);
                                         <?php endforeach; ?>
                                     </div>
                                 <?php endif; ?>
+
+                                <!-- At-Risk Staff -->
+                                <h6 class="text-danger mb-3"><i class="bi bi-exclamation-triangle-fill"></i> At-Risk Staff (<70%)</h6>
+                                <?php if (empty($at_risk_staff)): ?>
+                                    <p class="text-muted small">No at-risk staff for this period.</p>
+                                <?php else: ?>
+                                    <div class="list-group">
+                                        <?php foreach (array_slice($at_risk_staff, 0, 3) as $staff): ?>
+                                            <a href="staff_profile.php?id=<?= $staff['staff_id'] ?>" 
+                                               class="list-group-item list-group-item-action list-group-item-warning">
+                                                <div class="d-flex w-100 justify-content-between">
+                                                    <h6 class="mb-1"><?= htmlspecialchars($staff['full_name']) ?></h6>
+                                                    <span class="badge bg-danger"><?= $staff['current_score'] ?>%</span>
+                                                </div>
+                                                <small class="text-muted"><?= htmlspecialchars($staff['reason']) ?></small>
+                                            </a>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
                 </div>
-
-                <!-- At-Risk Staff Alert -->
-                <?php if (!empty($at_risk_staff)): ?>
-                <div class="alert alert-warning alert-dismissible fade show" role="alert">
-                    <h5 class="alert-heading"><i class="bi bi-exclamation-triangle-fill"></i> Attention Required</h5>
-                    <p><strong><?= count($at_risk_staff) ?></strong> staff member(s) require immediate attention:</p>
-                    <ul class="mb-0">
-                        <?php foreach (array_slice($at_risk_staff, 0, 3) as $staff): ?>
-                            <li>
-                                <strong><?= htmlspecialchars($staff['full_name']) ?></strong> 
-                                (<?= $staff['current_score'] ?>%) - <?= $staff['reason'] ?>
-                                <a href="staff_profile.php?id=<?= $staff['staff_id'] ?>" class="alert-link">View Profile</a>
-                            </li>
-                        <?php endforeach; ?>
-                    </ul>
-                    <?php if (count($at_risk_staff) > 3): ?>
-                        <a href="reports.php?type=at_risk" class="alert-link">View all <?= count($at_risk_staff) ?> at-risk staff</a>
-                    <?php endif; ?>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-                <?php endif; ?>
 
                 <!-- Staff Performance Table -->
                 <div class="card shadow mb-4">
@@ -385,6 +424,28 @@ $available_years = $stmt->fetchAll(PDO::FETCH_COLUMN);
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        // Initialize Bootstrap tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+
+        // Add hover effect to clickable cards
+        document.querySelectorAll('.clickable-card').forEach(card => {
+            card.style.cursor = 'pointer';
+            card.style.transition = 'transform 0.2s, box-shadow 0.2s';
+            
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-5px)';
+                this.style.boxShadow = '0 8px 16px rgba(0,0,0,0.2)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+                this.style.boxShadow = '';
+            });
+        });
+        
         // Animate level counters on page load
         window.addEventListener('load', function() {
             const levelCounts = document.querySelectorAll('.level-count');

@@ -16,6 +16,13 @@
                 </a>
             </li>
             <li class="nav-item">
+                <a class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'kpi_entry.php' ? 'active' : '' ?>" 
+                   href="kpi_entry.php">
+                    <i class="bi bi-pencil-square"></i>
+                    KPI Score Entry
+                </a>
+            </li>
+            <li class="nav-item">
                 <a class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'staff_list.php' ? 'active' : '' ?>" 
                    href="staff_list.php">
                     <i class="bi bi-people"></i>
