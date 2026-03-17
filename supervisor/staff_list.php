@@ -88,7 +88,7 @@ foreach ($all_staff as $staff) {
                 <div class="card shadow mb-4">
                     <div class="card-body">
                         <form method="GET" class="row g-3">
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <label class="form-label">Evaluation Year</label>
                                 <select name="year" class="form-select" onchange="this.form.submit()">
                                     <?php foreach ($available_years as $year): ?>
@@ -98,7 +98,7 @@ foreach ($all_staff as $staff) {
                                     <?php endforeach; ?>
                                 </select>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <label class="form-label">Department</label>
                                 <select name="dept" class="form-select" onchange="this.form.submit()">
                                     <option value="">All Departments</option>
@@ -109,7 +109,18 @@ foreach ($all_staff as $staff) {
                                     <?php endforeach; ?>
                                 </select>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
+                                <label class="form-label">Performance Level</label>
+                                <select id="performanceFilter" class="form-select">
+                                    <option value="">All Levels</option>
+                                    <option value="Top Performer">Top Performer (≥85%)</option>
+                                    <option value="Good Performer">Good Performer (70-84%)</option>
+                                    <option value="Satisfactory">Satisfactory (50-69%)</option>
+                                    <option value="Needs Improvement">Needs Improvement (30-49%)</option>
+                                    <option value="Critical">Critical (<30%)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
                                 <label class="form-label">Search</label>
                                 <input type="text" class="form-control" id="searchBox" placeholder="Search by name...">
                             </div>
@@ -128,7 +139,9 @@ foreach ($all_staff as $staff) {
                             $initials .= strtoupper(substr($name, 0, 1));
                         }
                         ?>
-                        <div class="col-md-6 col-lg-4 mb-4 staff-card" data-name="<?= strtolower($staff['full_name']) ?>">
+                        <div class="col-md-6 col-lg-4 mb-4 staff-card" 
+                             data-name="<?= strtolower($staff['full_name']) ?>"
+                             data-classification="<?= $data['classification']['label'] ?>">
                             <div class="card shadow h-100">
                                 <div class="card-body">
                                     <div class="d-flex align-items-center mb-3">
@@ -213,19 +226,28 @@ foreach ($all_staff as $staff) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Search functionality
-        document.getElementById('searchBox').addEventListener('keyup', function() {
-            const searchValue = this.value.toLowerCase();
+        document.getElementById('searchBox').addEventListener('keyup', filterStaff);
+        document.getElementById('performanceFilter').addEventListener('change', filterStaff);
+        
+        function filterStaff() {
+            const searchValue = document.getElementById('searchBox').value.toLowerCase();
+            const performanceValue = document.getElementById('performanceFilter').value;
             const cards = document.querySelectorAll('.staff-card');
             
             cards.forEach(card => {
                 const name = card.getAttribute('data-name');
-                if (name.includes(searchValue)) {
+                const classification = card.getAttribute('data-classification');
+                
+                const matchesSearch = name.includes(searchValue);
+                const matchesPerformance = !performanceValue || classification === performanceValue;
+                
+                if (matchesSearch && matchesPerformance) {
                     card.style.display = '';
                 } else {
                     card.style.display = 'none';
                 }
             });
-        });
+        }
     </script>
 </body>
 </html>
