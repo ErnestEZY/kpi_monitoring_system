@@ -69,9 +69,8 @@ foreach ($active_staff_ids as $staff_id) {
 }
 
 // Get available years
-$sql = "SELECT DISTINCT evaluation_year FROM kpi_scores ORDER BY evaluation_year DESC";
-$stmt = $pdo->query($sql);
-$available_years = $stmt->fetchAll(PDO::FETCH_COLUMN);
+// Fixed year range: 2026 down to 2021
+$available_years = range(2026, 2021);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -166,7 +165,7 @@ $available_years = $stmt->fetchAll(PDO::FETCH_COLUMN);
                             <div class="card-body">
                                 <div class="row no-gutters align-items-center">
                                     <div class="col mr-2">
-                                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                        <div class="text-xs font-weight-bold text-uppercase mb-1" style="color: #e74a3b;">
                                             At-Risk Staff</div>
                                         <div class="h5 mb-0 font-weight-bold text-gray-800">
                                             <?= count($at_risk_staff) ?>
@@ -305,19 +304,27 @@ $available_years = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
                 <!-- Performance Distribution Chart -->
                 <div class="row mb-4">
-                    <div class="col-lg-6">
-                        <div class="card shadow mb-4">
+                    <div class="col-lg-6 d-flex">
+                        <div class="card shadow mb-4 w-100">
                             <div class="card-header py-3">
                                 <h6 class="m-0 font-weight-bold text-primary">Performance Distribution</h6>
                             </div>
                             <div class="card-body">
-                                <canvas id="distributionChart"></canvas>
+                                <div style="position: relative; height: 280px;">
+                                    <canvas id="distributionChart"></canvas>
+                                </div>
+                                <div class="mt-3 p-3 bg-light rounded">
+                                    <p class="mb-0 small text-muted">
+                                        <i class="bi bi-lightbulb-fill text-warning"></i> <strong>Quick Insight:</strong> 
+                                        This visualization shows your team's performance spread. A healthy distribution has most staff in "Good Performer" or above categories, indicating effective training and support systems.
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="col-lg-6">
-                        <div class="card shadow mb-4">
+                    <div class="col-lg-6 d-flex">
+                        <div class="card shadow mb-4 w-100">
                             <div class="card-header py-3 d-flex justify-content-between align-items-center">
                                 <h6 class="m-0 font-weight-bold text-primary">Top Performers & At-Risk Staff</h6>
                                 <small class="text-muted"><?= $selected_year ?></small>
@@ -429,22 +436,6 @@ $available_years = $stmt->fetchAll(PDO::FETCH_COLUMN);
         var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
             return new bootstrap.Tooltip(tooltipTriggerEl)
         });
-
-        // Add hover effect to clickable cards
-        document.querySelectorAll('.clickable-card').forEach(card => {
-            card.style.cursor = 'pointer';
-            card.style.transition = 'transform 0.2s, box-shadow 0.2s';
-            
-            card.addEventListener('mouseenter', function() {
-                this.style.transform = 'translateY(-5px)';
-                this.style.boxShadow = '0 8px 16px rgba(0,0,0,0.2)';
-            });
-            
-            card.addEventListener('mouseleave', function() {
-                this.style.transform = 'translateY(0)';
-                this.style.boxShadow = '';
-            });
-        });
         
         // Animate level counters on page load
         window.addEventListener('load', function() {
@@ -499,18 +490,72 @@ $available_years = $stmt->fetchAll(PDO::FETCH_COLUMN);
                         '#ffc107',
                         '#fd7e14',
                         '#dc3545'
-                    ]
+                    ],
+                    borderWidth: 3,
+                    borderColor: '#fff',
+                    hoverOffset: 8
                 }]
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: true,
+                maintainAspectRatio: false,
+                cutout: '68%',
                 plugins: {
                     legend: {
-                        position: 'bottom'
+                        position: 'bottom',
+                        labels: {
+                            padding: 16,
+                            usePointStyle: true,
+                            pointStyleWidth: 10
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const pct = total > 0 ? ((context.parsed / total) * 100).toFixed(1) : 0;
+                                return ` ${context.label}: ${context.parsed} staff (${pct}%)`;
+                            }
+                        }
                     }
                 }
-            }
+            },
+            plugins: [{
+                id: 'centerText',
+                beforeDraw(chart) {
+                    const { ctx, chartArea } = chart;
+                    if (!chartArea) return;
+
+                    // Centre of the actual doughnut drawing area (excludes legend)
+                    const cx = (chartArea.left + chartArea.right)  / 2;
+                    const cy = (chartArea.top  + chartArea.bottom) / 2;
+
+                    const yearText  = 'Year';
+                    const yearValue = '<?= $selected_year ?>';
+
+                    // Sizes relative to the doughnut radius
+                    const radius    = (chartArea.bottom - chartArea.top) / 2;
+                    const labelSize = Math.max(10, Math.round(radius / 5));
+                    const valueSize = Math.max(15, Math.round(radius / 3));
+                    const gap       = labelSize * 0.3;
+
+                    ctx.save();
+                    ctx.textAlign    = 'center';
+                    ctx.textBaseline = 'middle';
+
+                    // "Year" — small grey label above centre
+                    ctx.font      = `${labelSize}px sans-serif`;
+                    ctx.fillStyle = '#aaa';
+                    ctx.fillText(yearText, cx, cy - valueSize * 0.5 - gap);
+
+                    // Year number — bold, below label
+                    ctx.font      = `bold ${valueSize}px sans-serif`;
+                    ctx.fillStyle = '#444';
+                    ctx.fillText(yearValue, cx, cy + labelSize * 0.5 + gap);
+
+                    ctx.restore();
+                }
+            }]
         });
 
         // Search functionality

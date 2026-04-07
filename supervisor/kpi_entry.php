@@ -18,8 +18,15 @@ $kpi_list = $stmt->fetchAll();
 
 // Group KPIs by section
 $kpis_by_section = [];
+$kpis_by_category = []; // For Section 2 grouping
 foreach ($kpi_list as $kpi) {
-    $kpis_by_section[$kpi['section']][] = $kpi;
+    if ($kpi['section_number'] == 2) {
+        // Group Section 2 by kpi_group (category)
+        $kpis_by_category[$kpi['kpi_group']][] = $kpi;
+    } else {
+        // Section 1 - Core Competencies
+        $kpis_by_section[$kpi['section']][] = $kpi;
+    }
 }
 
 // Get selected staff and year
@@ -37,7 +44,8 @@ if ($selected_staff_id) {
 }
 
 // Get available years
-$years = range(date('Y'), date('Y') - 5);
+// Fixed year range: 2026 down to 2021
+$years = range(2026, 2021);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -92,6 +100,9 @@ $years = range(date('Y'), date('Y') - 5);
             cursor: pointer;
             transition: all 0.2s;
             font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
         .score-btn:hover {
@@ -120,8 +131,10 @@ $years = range(date('Y'), date('Y') - 5);
         
         .score-legend {
             display: flex;
-            justify-content: space-around;
-            padding: 15px;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 30px;
+            padding: 20px;
             background: white;
             border-radius: 5px;
             margin-bottom: 20px;
@@ -129,6 +142,10 @@ $years = range(date('Y'), date('Y') - 5);
         
         .legend-item {
             text-align: center;
+            flex: 0 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
         
         .summary-card {
@@ -148,6 +165,38 @@ $years = range(date('Y'), date('Y') - 5);
             border-radius: 10px;
             font-size: 0.85rem;
             font-weight: 600;
+        }
+        
+        .kpi-section-header {
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.2s;
+        }
+        
+        .kpi-section-header:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .kpi-category-header {
+            cursor: pointer;
+            user-select: none;
+            padding: 10px 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            transition: background-color 0.2s;
+        }
+        
+        .kpi-category-header:hover {
+            background-color: #e9ecef;
+        }
+        
+        .collapse-icon {
+            transition: transform 0.3s;
+        }
+        
+        .collapse-icon.collapsed {
+            transform: rotate(-90deg);
         }
     </style>
 </head>
@@ -214,29 +263,33 @@ $years = range(date('Y'), date('Y') - 5);
                             <!-- Score Legend -->
                             <div class="score-legend shadow-sm">
                                 <div class="legend-item">
-                                    <div class="score-btn" data-score="5" style="pointer-events: none;">5</div>
-                                    <small class="d-block mt-2 fw-bold text-success">Excellent</small>
-                                    <small class="text-muted">Outstanding</small>
+                                    <div class="score-btn" data-score="1" style="pointer-events: none;">1</div>
+                                    <small class="d-block mt-2 fw-bold text-danger">Very Poor</small>
+                                    <small class="text-muted">Unsatisfactory</small>
                                 </div>
-                                <div class="legend-item">
-                                    <div class="score-btn" data-score="4" style="pointer-events: none;">4</div>
-                                    <small class="d-block mt-2 fw-bold text-info">Good</small>
-                                    <small class="text-muted">Above Average</small>
-                                </div>
-                                <div class="legend-item">
-                                    <div class="score-btn" data-score="3" style="pointer-events: none;">3</div>
-                                    <small class="d-block mt-2 fw-bold text-warning">Satisfactory</small>
-                                    <small class="text-muted">Meets Expectations</small>
-                                </div>
+
                                 <div class="legend-item">
                                     <div class="score-btn" data-score="2" style="pointer-events: none;">2</div>
                                     <small class="d-block mt-2 fw-bold" style="color: #fd7e14;">Poor</small>
                                     <small class="text-muted">Below Average</small>
                                 </div>
+
                                 <div class="legend-item">
-                                    <div class="score-btn" data-score="1" style="pointer-events: none;">1</div>
-                                    <small class="d-block mt-2 fw-bold text-danger">Very Poor</small>
-                                    <small class="text-muted">Unsatisfactory</small>
+                                    <div class="score-btn" data-score="3" style="pointer-events: none;">3</div>
+                                    <small class="d-block mt-2 fw-bold text-warning">Satisfactory</small>
+                                    <small class="text-muted">Meets Expectations</small>
+                                </div>
+
+                                <div class="legend-item">
+                                    <div class="score-btn" data-score="4" style="pointer-events: none;">4</div>
+                                    <small class="d-block mt-2 fw-bold text-info">Good</small>
+                                    <small class="text-muted">Above Average</small>
+                                </div>
+
+                                <div class="legend-item">
+                                    <div class="score-btn" data-score="5" style="pointer-events: none;">5</div>
+                                    <small class="d-block mt-2 fw-bold text-success">Excellent</small>
+                                    <small class="text-muted">Outstanding</small>
                                 </div>
                             </div>
 
@@ -245,52 +298,159 @@ $years = range(date('Y'), date('Y') - 5);
                                 <input type="hidden" name="evaluation_year" value="<?= $selected_year ?>">
                                 <input type="hidden" name="evaluation_date" value="<?= date('Y-m-d') ?>">
 
+                                <!-- Section 1: Core Competencies -->
                                 <?php foreach ($kpis_by_section as $section => $kpis): ?>
                                     <div class="kpi-section">
-                                        <h5 class="mb-3">
-                                            <i class="bi bi-folder-fill text-primary"></i> 
-                                            <?= htmlspecialchars($section) ?>
-                                        </h5>
+                                        <div class="kpi-section-header" data-bs-toggle="collapse" data-bs-target="#section-core" aria-expanded="true">
+                                            <h5 class="mb-0 d-flex justify-content-between align-items-center">
+                                                <span>
+                                                    <i class="bi bi-folder-fill text-primary"></i> 
+                                                    <?= htmlspecialchars($section) ?>
+                                                    <span class="badge bg-primary ms-2"><?= count($kpis) ?> KPIs</span>
+                                                </span>
+                                                <i class="bi bi-chevron-down collapse-icon"></i>
+                                            </h5>
+                                        </div>
 
-                                        <?php foreach ($kpis as $kpi): ?>
-                                            <div class="kpi-item">
-                                                <div class="row align-items-center">
-                                                    <div class="col-md-6">
-                                                        <div class="d-flex justify-content-between align-items-start mb-2">
-                                                            <strong><?= htmlspecialchars($kpi['kpi_code']) ?></strong>
-                                                            <span class="weight-badge">
-                                                                <?= number_format($kpi['weight_percentage'], 2) ?>%
-                                                            </span>
-                                                        </div>
-                                                        <p class="mb-0 text-muted small">
-                                                            <?= htmlspecialchars($kpi['kpi_description']) ?>
-                                                        </p>
-                                                    </div>
+                                        <div class="collapse show" id="section-core">
+                                            <div class="mt-3">
+                                                <!-- Score indicator row -->
+                                                <div class="row mb-1">
+                                                    <div class="col-md-6"></div>
                                                     <div class="col-md-6">
                                                         <div class="d-flex justify-content-end align-items-center gap-3">
-                                                            <div class="score-buttons">
-                                                                <?php for ($i = 1; $i <= 5; $i++): ?>
-                                                                    <button type="button" 
-                                                                            class="score-btn <?= (isset($existing_scores[$kpi['kpi_code']]) && $existing_scores[$kpi['kpi_code']] == $i) ? 'active' : '' ?>" 
-                                                                            data-score="<?= $i ?>"
-                                                                            data-kpi="<?= $kpi['kpi_code'] ?>"
-                                                                            data-weight="<?= $kpi['weight_percentage'] ?>"
-                                                                            onclick="selectScore(this)">
-                                                                        <?= $i ?>
-                                                                    </button>
-                                                                <?php endfor; ?>
+                                                            <div class="d-flex justify-content-between" style="width: calc(5 * 45px + 4 * 5px); margin-right: 1rem;">
+                                                                <span class="text-danger small fw-semibold"><i class="bi bi-hand-thumbs-down-fill"></i> Poor</span>
+                                                                <span class="text-success small fw-semibold">Excellent <i class="bi bi-hand-thumbs-up-fill"></i></span>
                                                             </div>
-                                                            <input type="hidden" 
-                                                                   name="scores[<?= $kpi['kpi_code'] ?>]" 
-                                                                   id="score_<?= $kpi['kpi_code'] ?>"
-                                                                   value="<?= $existing_scores[$kpi['kpi_code']] ?? '' ?>">
                                                         </div>
                                                     </div>
                                                 </div>
+                                                <?php foreach ($kpis as $kpi): ?>
+                                                    <div class="kpi-item">
+                                                        <div class="row align-items-center">
+                                                            <div class="col-md-6">
+                                                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                                                    <strong><?= htmlspecialchars($kpi['kpi_code']) ?></strong>
+                                                                    <span class="weight-badge">
+                                                                        <?= number_format($kpi['weight_percentage'], 2) ?>%
+                                                                    </span>
+                                                                </div>
+                                                                <p class="mb-0 text-muted small">
+                                                                    <?= htmlspecialchars($kpi['kpi_description']) ?>
+                                                                </p>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <div class="d-flex justify-content-end align-items-center gap-3">
+                                                                    <div class="score-buttons">
+                                                                        <?php for ($i = 1; $i <= 5; $i++): ?>
+                                                                            <button type="button" 
+                                                                                    class="score-btn <?= (isset($existing_scores[$kpi['kpi_code']]) && $existing_scores[$kpi['kpi_code']] == $i) ? 'active' : '' ?>" 
+                                                                                    data-score="<?= $i ?>"
+                                                                                    data-kpi="<?= $kpi['kpi_code'] ?>"
+                                                                                    data-weight="<?= $kpi['weight_percentage'] ?>"
+                                                                                    onclick="selectScore(this)">
+                                                                                <?= $i ?>
+                                                                            </button>
+                                                                        <?php endfor; ?>
+                                                                    </div>
+                                                                    <input type="hidden" 
+                                                                           name="scores[<?= $kpi['kpi_code'] ?>]" 
+                                                                           id="score_<?= $kpi['kpi_code'] ?>"
+                                                                           value="<?= $existing_scores[$kpi['kpi_code']] ?? '' ?>">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                <?php endforeach; ?>
                                             </div>
-                                        <?php endforeach; ?>
+                                        </div>
                                     </div>
                                 <?php endforeach; ?>
+
+                                <!-- Section 2: KPI Achievement (Grouped by Category) -->
+                                <div class="kpi-section">
+                                    <div class="kpi-section-header" data-bs-toggle="collapse" data-bs-target="#section-kpi" aria-expanded="true">
+                                        <h5 class="mb-0 d-flex justify-content-between align-items-center">
+                                            <span>
+                                                <i class="bi bi-folder-fill text-success"></i> 
+                                                KPI Achievement
+                                                <span class="badge bg-success ms-2"><?= count($kpis_by_category) ?> Categories</span>
+                                            </span>
+                                            <i class="bi bi-chevron-down collapse-icon"></i>
+                                        </h5>
+                                    </div>
+                                    
+                                    <div class="collapse show" id="section-kpi">
+                                        <div class="mt-3">
+                                            <?php $categoryIndex = 0; foreach ($kpis_by_category as $category => $kpis): $categoryIndex++; ?>
+                                                <div class="mb-3">
+                                                    <div class="kpi-category-header" data-bs-toggle="collapse" data-bs-target="#category-<?= $categoryIndex ?>" aria-expanded="false">
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <h6 class="mb-0 text-success">
+                                                                <i class="bi bi-chevron-down collapse-icon"></i> 
+                                                                <?= htmlspecialchars($category) ?>
+                                                                <span class="badge bg-light text-dark ms-2"><?= count($kpis) ?> KPIs</span>
+                                                            </h6>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div class="collapse" id="category-<?= $categoryIndex ?>">
+                                                        <!-- Score indicator row -->
+                                                        <div class="row mb-1 mt-1">
+                                                            <div class="col-md-6"></div>
+                                                            <div class="col-md-6">
+                                                                <div class="d-flex justify-content-end align-items-center gap-3">
+                                                                    <div class="d-flex justify-content-between" style="width: calc(5 * 45px + 4 * 5px); margin-right: 1rem;">
+                                                                        <span class="text-danger small fw-semibold"><i class="bi bi-hand-thumbs-down-fill"></i> Poor</span>
+                                                                        <span class="text-success small fw-semibold">Excellent <i class="bi bi-hand-thumbs-up-fill"></i></span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <?php foreach ($kpis as $kpi): ?>
+                                                            <div class="kpi-item">
+                                                                <div class="row align-items-center">
+                                                                    <div class="col-md-6">
+                                                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                                                            <strong><?= htmlspecialchars($kpi['kpi_code']) ?></strong>
+                                                                            <span class="weight-badge">
+                                                                                <?= number_format($kpi['weight_percentage'], 2) ?>%
+                                                                            </span>
+                                                                        </div>
+                                                                        <p class="mb-0 text-muted small">
+                                                                            <?= htmlspecialchars($kpi['kpi_description']) ?>
+                                                                        </p>
+                                                                    </div>
+                                                                    <div class="col-md-6">
+                                                                        <div class="d-flex justify-content-end align-items-center gap-3">
+                                                                            <div class="score-buttons">
+                                                                                <?php for ($i = 1; $i <= 5; $i++): ?>
+                                                                                    <button type="button" 
+                                                                                            class="score-btn <?= (isset($existing_scores[$kpi['kpi_code']]) && $existing_scores[$kpi['kpi_code']] == $i) ? 'active' : '' ?>" 
+                                                                                            data-score="<?= $i ?>"
+                                                                                            data-kpi="<?= $kpi['kpi_code'] ?>"
+                                                                                            data-weight="<?= $kpi['weight_percentage'] ?>"
+                                                                                            onclick="selectScore(this)">
+                                                                                        <?= $i ?>
+                                                                                    </button>
+                                                                                <?php endfor; ?>
+                                                                            </div>
+                                                                            <input type="hidden" 
+                                                                                   name="scores[<?= $kpi['kpi_code'] ?>]" 
+                                                                                   id="score_<?= $kpi['kpi_code'] ?>"
+                                                                                   value="<?= $existing_scores[$kpi['kpi_code']] ?? '' ?>">
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        <?php endforeach; ?>
+                                                    </div>
+                                                </div>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    </div>
+                                </div>
 
                                 <div class="d-grid gap-2 mt-4">
                                     <button type="submit" class="btn btn-primary btn-lg">
@@ -328,9 +488,13 @@ $years = range(date('Y'), date('Y') - 5);
 
                                     <!-- Score Progress -->
                                     <div class="text-center mb-4">
-                                        <canvas id="scoreChart" width="150" height="150"></canvas>
-                                        <h2 class="mt-3 mb-0" id="totalScore">0.0</h2>
-                                        <small class="text-muted">Overall Score</small>
+                                        <div style="position: relative; display: inline-block;">
+                                            <canvas id="scoreChart" width="150" height="150"></canvas>
+                                            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none;">
+                                                <h2 class="mb-0" id="totalScore">0.0</h2>
+                                            </div>
+                                        </div>
+                                        <small class="d-block text-muted">Overall Score</small>
                                     </div>
 
                                     <hr>
@@ -448,11 +612,14 @@ $years = range(date('Y'), date('Y') - 5);
                     const button = document.querySelector(`[data-kpi="${kpiCode}"][data-score="${score}"]`);
                     const weight = parseFloat(button.dataset.weight);
                     
+                    // weighted contribution = (score/5) * weight  → sums to 0-100 when all entered
                     totalScore += (score / 5) * weight;
                     totalWeight += weight;
                 }
             });
             
+            // Overall % = totalScore (already in 0-100 range when all weights filled)
+            // When partial, scale to filled weight so preview is meaningful
             const overallScore = totalWeight > 0 ? (totalScore / totalWeight) * 100 : 0;
             const progress = (scoresEntered / inputs.length) * 100;
             
@@ -566,21 +733,28 @@ $years = range(date('Y'), date('Y') - 5);
             // Submit via AJAX
             fetch('../api/kpi_api.php?action=save_scores', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             })
             .then(response => response.json())
             .then(result => {
                 if (result.success) {
+                    const savedCount = result.saved_count;
+                    const serverScore = result.overall_score
+                        ? result.overall_score.toFixed(1) + '%'
+                        : '—';
+                    
                     Swal.fire({
                         icon: 'success',
                         title: 'Scores Saved!',
-                        text: `Successfully saved ${Object.keys(scores).length} KPI scores.`,
-                        confirmButtonText: 'View Profile'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
+                        html: `<p>Saved <strong>${savedCount}</strong> KPI scores.</p>
+                               <p>Calculated overall score: <strong>${serverScore}</strong></p>`,
+                        showCancelButton: true,
+                        confirmButtonText: '<i class="bi bi-person-lines-fill"></i> View Profile',
+                        cancelButtonText: 'Stay on Page',
+                        confirmButtonColor: '#667eea'
+                    }).then((res) => {
+                        if (res.isConfirmed) {
                             window.location.href = 'staff_profile.php?id=' + data.staff_id;
                         }
                     });
@@ -598,6 +772,21 @@ $years = range(date('Y'), date('Y') - 5);
         document.addEventListener('DOMContentLoaded', function() {
             initChart();
             updateSummary();
+            
+            // Handle collapse icon rotation
+            document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(function(element) {
+                const icon = element.querySelector('.collapse-icon');
+                // Set initial state based on aria-expanded
+                if (icon && element.getAttribute('aria-expanded') === 'false') {
+                    icon.classList.add('collapsed');
+                }
+                element.addEventListener('click', function() {
+                    const icon = this.querySelector('.collapse-icon');
+                    if (icon) {
+                        icon.classList.toggle('collapsed');
+                    }
+                });
+            });
         });
     </script>
 </body>

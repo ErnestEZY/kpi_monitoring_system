@@ -19,9 +19,8 @@ $stmt = $pdo->query($sql);
 $departments = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
 // Get available years
-$sql = "SELECT DISTINCT evaluation_year FROM kpi_scores ORDER BY evaluation_year DESC";
-$stmt = $pdo->query($sql);
-$available_years = $stmt->fetchAll(PDO::FETCH_COLUMN);
+// Fixed year range: 2026 down to 2021
+$available_years = range(2026, 2021);
 
 // Get all staff
 $sql = "SELECT s.*, s.department as department_name, s.name as full_name, s.staff_code as staff_number
@@ -121,8 +120,15 @@ foreach ($all_staff as $staff) {
                                 </select>
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label">Search</label>
-                                <input type="text" class="form-control" id="searchBox" placeholder="Search by name...">
+                                <label class="form-label">Staff Member</label>
+                                <select id="staffFilter" class="form-select">
+                                    <option value="">All Staff</option>
+                                    <?php foreach ($all_staff as $staff): ?>
+                                        <option value="<?= strtolower($staff['name']) ?>">
+                                            <?= htmlspecialchars($staff['name']) ?> (<?= htmlspecialchars($staff['staff_code']) ?>)
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
                             </div>
                         </form>
                     </div>
@@ -145,13 +151,18 @@ foreach ($all_staff as $staff) {
                             <div class="card shadow h-100">
                                 <div class="card-body">
                                     <div class="d-flex align-items-center mb-3">
-                                        <div class="profile-avatar me-3" style="width: 60px; height: 60px; font-size: 1.5rem;">
+                                        <div class="profile-avatar me-3" style="width:60px;height:60px;font-size:1.5rem;flex-shrink:0;">
                                             <?= $initials ?>
                                         </div>
                                         <div class="flex-grow-1">
                                             <h5 class="mb-0"><?= htmlspecialchars($staff['full_name']) ?></h5>
                                             <small class="text-muted"><?= htmlspecialchars($staff['staff_number']) ?></small>
                                         </div>
+                                        <?php if (!empty($staff['photo'])): ?>
+                                        <img src="../assets/photos/<?= htmlspecialchars($staff['photo']) ?>"
+                                             alt=""
+                                             style="width:90px;height:90px;border-radius:8px;object-fit:cover;flex-shrink:0;border:1px solid #dee2e6;">
+                                        <?php endif; ?>
                                     </div>
                                     
                                     <div class="mb-2">
@@ -225,12 +236,12 @@ foreach ($all_staff as $staff) {
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Search functionality
-        document.getElementById('searchBox').addEventListener('keyup', filterStaff);
+        // Filter functionality
+        document.getElementById('staffFilter').addEventListener('change', filterStaff);
         document.getElementById('performanceFilter').addEventListener('change', filterStaff);
         
         function filterStaff() {
-            const searchValue = document.getElementById('searchBox').value.toLowerCase();
+            const staffValue = document.getElementById('staffFilter').value.toLowerCase();
             const performanceValue = document.getElementById('performanceFilter').value;
             const cards = document.querySelectorAll('.staff-card');
             
@@ -238,10 +249,10 @@ foreach ($all_staff as $staff) {
                 const name = card.getAttribute('data-name');
                 const classification = card.getAttribute('data-classification');
                 
-                const matchesSearch = name.includes(searchValue);
+                const matchesStaff = !staffValue || name.includes(staffValue);
                 const matchesPerformance = !performanceValue || classification === performanceValue;
                 
-                if (matchesSearch && matchesPerformance) {
+                if (matchesStaff && matchesPerformance) {
                     card.style.display = '';
                 } else {
                     card.style.display = 'none';

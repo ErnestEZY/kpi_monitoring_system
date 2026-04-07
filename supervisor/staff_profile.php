@@ -102,6 +102,7 @@ foreach ($names as $name) {
                     <div class="profile-header">
                         <div class="row align-items-center">
                             <div class="col-auto">
+                                <!-- Initials avatar — unchanged -->
                                 <div class="profile-avatar">
                                     <?= $initials ?>
                                 </div>
@@ -114,6 +115,13 @@ foreach ($names as $name) {
                                     <span class="text-muted">Overall Score: <strong><?= number_format($current_data['overall_score'], 1) ?>%</strong></span>
                                 </div>
                             </div>
+                            <?php if (!empty($staff['photo'])): ?>
+                            <div class="col-auto d-none d-md-block">
+                                <img src="../assets/photos/<?= htmlspecialchars($staff['photo']) ?>"
+                                     alt=""
+                                     style="width:110px;height:110px;border-radius:12px;object-fit:cover;border:3px solid rgba(255,255,255,.5);box-shadow:0 4px 12px rgba(0,0,0,.2);">
+                            </div>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
@@ -122,7 +130,7 @@ foreach ($names as $name) {
                 <div class="card shadow mb-4">
                     <div class="card-header">
                         <h6 class="m-0 font-weight-bold text-primary">
-                            <i class="bi bi-robot"></i> AI-Generated Performance Narrative
+                            <i class="bi bi-robot"></i> Performance Story
                         </h6>
                     </div>
                     <div class="card-body">
@@ -132,132 +140,360 @@ foreach ($names as $name) {
                     </div>
                 </div>
 
-                <!-- Smart Comment Assistant with Alpine.js -->
-                <div x-data="commentAssistant(<?= $staff_id ?>, <?= $_SESSION['supervisor_id'] ?>)" class="card shadow mb-4">
-                    <div class="card-header bg-info text-white">
-                        <h6 class="m-0">
-                            <i class="bi bi-magic"></i> Smart Comment Assistant
-                            <span class="badge bg-light text-dark ms-2">
-                                <i class="bi bi-lightning-charge-fill"></i> Powered by Alpine.js
-                            </span>
-                        </h6>
-                    </div>
-                    <div class="card-body">
-                        <!-- Year Selection -->
-                        <div class="mb-3">
-                            <label class="form-label">Evaluation Year:</label>
-                            <select x-model="selectedYear" class="form-select">
-                                <?php for ($y = date('Y'); $y >= 2022; $y--): ?>
-                                    <option value="<?= $y ?>"><?= $y ?></option>
-                                <?php endfor; ?>
-                            </select>
-                        </div>
-                        
-                        <!-- Quick Templates -->
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">
-                                <i class="bi bi-collection"></i> Quick Templates:
-                            </label>
-                            <div class="row g-2">
-                                <template x-for="template in getTemplates()" :key="template.name">
-                                    <div class="col-md-6">
-                                        <button 
-                                            type="button" 
-                                            class="btn btn-outline-primary w-100 text-start"
-                                            @click="applyTemplate(template)">
-                                            <i class="bi bi-file-text"></i>
-                                            <span x-text="template.name"></span>
-                                        </button>
-                                    </div>
-                                </template>
+                <!-- Performance Visuals & Charts -->
+                <div class="row mb-4">
+                    <!-- Performance Trend Chart -->
+                    <div class="col-lg-8 d-flex">
+                        <div class="card shadow mb-4 w-100">
+                            <div class="card-header">
+                                <h6 class="m-0 font-weight-bold text-primary">
+                                    <i class="bi bi-graph-up"></i> Performance Trend Over Time
+                                </h6>
                             </div>
-                        </div>
-                        
-                        <!-- Comment Text Area -->
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Performance Comment:</label>
-                            <textarea 
-                                x-model="comment" 
-                                @input="debouncedSave()"
-                                class="form-control" 
-                                rows="5"
-                                placeholder="Type your comment or select a template above..."
-                                maxlength="1000">
-                            </textarea>
-                            <div class="d-flex justify-content-between align-items-center mt-2">
-                                <small class="text-muted">
-                                    <span x-text="comment.length"></span> / 1000 characters
-                                </small>
-                                <div>
-                                    <span x-show="isSaving" class="text-primary">
-                                        <i class="bi bi-cloud-upload"></i> Saving...
-                                    </span>
+                            <div class="card-body">
+                                <div style="height: 300px;">
+                                    <canvas id="trendChart"></canvas>
+                                </div>
+                                <div class="mt-3">
+                                    <p class="text-muted mb-2"><strong>Trend Analysis:</strong></p>
+                                    <?php
+                                    if (count($trend) > 1) {
+                                        $latest = end($trend);
+                                        $previous = prev($trend);
+                                        $change = $latest['overall_score'] - $previous['overall_score'];
+                                        
+                                        if ($change > 5) {
+                                            echo '<p class="text-success"><i class="bi bi-arrow-up-circle-fill"></i> <strong>Improving:</strong> Performance has increased by ' . number_format($change, 1) . '% from last year. Keep up the excellent work!</p>';
+                                        } elseif ($change < -5) {
+                                            echo '<p class="text-danger"><i class="bi bi-arrow-down-circle-fill"></i> <strong>Declining:</strong> Performance has decreased by ' . number_format(abs($change), 1) . '% from last year. Immediate attention and support needed.</p>';
+                                        } else {
+                                            echo '<p class="text-info"><i class="bi bi-dash-circle-fill"></i> <strong>Stable:</strong> Performance is consistent with previous year. Consider setting new growth targets.</p>';
+                                        }
+                                    } else {
+                                        echo '<p class="text-muted">Insufficient historical data for trend analysis.</p>';
+                                    }
+                                    ?>
                                 </div>
                             </div>
                         </div>
-                        
-                        <!-- Training Recommendation -->
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Training Recommendation:</label>
-                            <textarea 
-                                x-model="training" 
-                                @input="debouncedSave()"
-                                class="form-control" 
-                                rows="3"
-                                placeholder="Recommend specific training programs..."
-                                maxlength="500">
-                            </textarea>
-                            <small class="text-muted">
-                                <span x-text="training.length"></span> / 500 characters
-                            </small>
-                        </div>
-                        
-                        <!-- Preview -->
-                        <div x-show="comment.length > 0 || training.length > 0" 
-                             x-transition
-                             class="alert alert-light border">
-                            <strong><i class="bi bi-eye"></i> Preview:</strong>
-                            <div x-show="comment.length > 0" class="mt-2">
-                                <strong class="text-primary">Comment:</strong>
-                                <p x-text="comment" class="mb-2"></p>
+                    </div>
+
+                    <!-- Score Gauge -->
+                    <div class="col-lg-4 d-flex">
+                        <div class="card shadow mb-4 w-100">
+                            <div class="card-header">
+                                <h6 class="m-0 font-weight-bold text-primary">
+                                    <i class="bi bi-speedometer2"></i> Current Score
+                                </h6>
                             </div>
-                            <div x-show="training.length > 0" class="mt-2">
-                                <strong class="text-success">Training:</strong>
-                                <p x-text="training" class="mb-0"></p>
+                            <div class="card-body text-center d-flex flex-column">
+                                <div class="flex-grow-1 d-flex flex-column align-items-center justify-content-center">
+                                    <div style="height: 200px; position: relative; display: flex; align-items: center; justify-content: center;">
+                                        <div style="position: relative; width: 200px; height: 200px;">
+                                            <canvas id="gaugeChart"></canvas>
+                                            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none;">
+                                                <h2 class="mb-0"><?= number_format($current_data['overall_score'], 1) ?>%</h2>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <span class="badge bg-<?= $classification['color'] ?> fs-6 mt-2">
+                                        <?= $classification['label'] ?>
+                                    </span>
+                                </div>
+                                <div class="mt-auto text-start">
+                                    <hr>
+                                    <p class="mb-2"><strong>Performance Level:</strong></p>
+                                    <?php if ($current_data['overall_score'] >= 85): ?>
+                                        <p class="text-success small mb-0">
+                                            <i class="bi bi-trophy-fill"></i> Exceeds expectations consistently. Candidate for leadership roles.
+                                        </p>
+                                    <?php elseif ($current_data['overall_score'] >= 70): ?>
+                                        <p class="text-info small mb-0">
+                                            <i class="bi bi-star-fill"></i> Meets expectations well. Shows potential for advancement.
+                                        </p>
+                                    <?php elseif ($current_data['overall_score'] >= 50): ?>
+                                        <p class="text-warning small mb-0">
+                                            <i class="bi bi-exclamation-circle-fill"></i> Meets basic expectations. Needs improvement in key areas.
+                                        </p>
+                                    <?php else: ?>
+                                        <p class="text-danger small mb-0">
+                                            <i class="bi bi-x-circle-fill"></i> Below expectations. Requires immediate intervention and support.
+                                        </p>
+                                    <?php endif; ?>
+                                </div>
                             </div>
                         </div>
-                        
-                        <!-- Action Buttons -->
-                        <div class="d-flex gap-2">
-                            <button 
-                                type="button" 
-                                @click="saveComment()" 
-                                class="btn btn-primary"
-                                :disabled="comment.length === 0 || isSaving">
-                                <i class="bi bi-save"></i> Save Now
-                            </button>
-                            <button 
-                                type="button" 
-                                @click="loadExistingComment()" 
-                                class="btn btn-secondary">
-                                <i class="bi bi-arrow-clockwise"></i> Load Existing
-                            </button>
-                            <button 
-                                type="button" 
-                                @click="clearAll()" 
-                                class="btn btn-outline-danger">
-                                <i class="bi bi-x-circle"></i> Clear
-                            </button>
+                    </div>
+                </div>
+
+                <!-- KPI Category Breakdown -->
+                <div class="row mb-4">
+                    <div class="col-lg-6 d-flex">
+                        <div class="card shadow mb-4 w-100">
+                            <div class="card-header">
+                                <h6 class="m-0 font-weight-bold text-primary">
+                                    <i class="bi bi-pie-chart-fill"></i> KPI Category Breakdown
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div style="height: 320px;">
+                                    <canvas id="categoryChart"></canvas>
+                                </div>
+                                <?php
+                                $sql_cat = "SELECT km.section, AVG(ks.score) as avg_score
+                                            FROM kpi_scores ks
+                                            JOIN kpi_master km ON ks.kpi_code = km.kpi_code
+                                            WHERE ks.staff_id = ? AND ks.evaluation_year = ?
+                                            GROUP BY km.section
+                                            ORDER BY avg_score DESC";
+                                $stmt_cat = $pdo->prepare($sql_cat);
+                                $stmt_cat->execute([$staff_id, $current_year]);
+                                $cat_insight = $stmt_cat->fetchAll();
+
+                                if (!empty($cat_insight)):
+                                    $best = $cat_insight[0];
+                                    $worst = end($cat_insight);
+                                    $avg_all = array_sum(array_column($cat_insight, 'avg_score')) / count($cat_insight);
+                                    $below = array_filter($cat_insight, fn($c) => $c['avg_score'] < 3);
+                                ?>
+                                <hr class="mt-3 mb-2">
+                                <p class="small text-muted mb-0">
+                                    <i class="bi bi-lightbulb text-warning"></i> <strong>Insight:</strong>
+                                    Strongest in <strong><?= htmlspecialchars($best['section']) ?></strong>
+                                    (<?= number_format($best['avg_score'], 1) ?>/5.0).
+                                    <?php if ($worst['section'] !== $best['section']): ?>
+                                        Lowest in <strong><?= htmlspecialchars($worst['section']) ?></strong>
+                                        (<?= number_format($worst['avg_score'], 1) ?>/5.0).
+                                    <?php endif; ?>
+                                    Overall average: <strong><?= number_format($avg_all, 1) ?>/5.0</strong>.
+                                    <?php if (count($below) > 0): ?>
+                                        <span class="text-danger"><?= count($below) ?> categor<?= count($below) > 1 ? 'ies need' : 'y needs' ?> attention (score &lt; 3.0).</span>
+                                    <?php else: ?>
+                                        <span class="text-success">All categories are performing satisfactorily.</span>
+                                    <?php endif; ?>
+                                </p>
+                                <?php endif; ?>
+                            </div>
                         </div>
+                    </div>
+
+                    <div class="col-lg-6 d-flex">
+                        <div class="card shadow mb-4 w-100">
+                            <div class="card-header">
+                                <h6 class="m-0 font-weight-bold text-primary">
+                                    <i class="bi bi-bar-chart-fill"></i> Strengths & Weaknesses
+                                </h6>
+                            </div>
+                            <div class="card-body d-flex flex-column" style="min-height: 0;">
+                                <div style="flex: 1; overflow-y: auto;">
+                                <?php
+                                // Get category scores for current year
+                                $sql = "SELECT km.section, AVG(ks.score) as avg_score
+                                        FROM kpi_scores ks
+                                        JOIN kpi_master km ON ks.kpi_code = km.kpi_code
+                                        WHERE ks.staff_id = ? AND ks.evaluation_year = ?
+                                        GROUP BY km.section
+                                        ORDER BY avg_score DESC";
+                                $stmt = $pdo->prepare($sql);
+                                $stmt->execute([$staff_id, $current_year]);
+                                $category_scores = $stmt->fetchAll();
+                                
+                                if (!empty($category_scores)):
+                                    $top_categories = array_slice($category_scores, 0, 3);
+                                    $bottom_categories = array_slice($category_scores, -3);
+                                ?>
+                                    <div class="mb-4">
+                                        <h6 class="text-success"><i class="bi bi-check-circle-fill"></i> Top Strengths</h6>
+                                        <?php foreach ($top_categories as $cat): ?>
+                                            <div class="mb-2">
+                                                <div class="d-flex justify-content-between mb-1">
+                                                    <small><?= htmlspecialchars($cat['section']) ?></small>
+                                                    <small class="text-success fw-bold"><?= number_format($cat['avg_score'], 1) ?>/5.0</small>
+                                                </div>
+                                                <div class="progress" style="height: 8px;">
+                                                    <div class="progress-bar bg-success" style="width: <?= ($cat['avg_score']/5)*100 ?>%"></div>
+                                                </div>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    </div>
+
+                                    <div>
+                                        <h6 class="text-warning"><i class="bi bi-exclamation-triangle-fill"></i> Areas for Improvement</h6>
+                                        <?php foreach ($bottom_categories as $cat): ?>
+                                            <div class="mb-2">
+                                                <div class="d-flex justify-content-between mb-1">
+                                                    <small><?= htmlspecialchars($cat['section']) ?></small>
+                                                    <small class="text-warning fw-bold"><?= number_format($cat['avg_score'], 1) ?>/5.0</small>
+                                                </div>
+                                                <div class="progress" style="height: 8px;">
+                                                    <div class="progress-bar bg-warning" style="width: <?= ($cat['avg_score']/5)*100 ?>%"></div>
+                                                </div>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php else: ?>
+                                    <p class="text-muted">No category data available for <?= $current_year ?>.</p>
+                                <?php endif; ?>
+                                </div>
+                                <?php if (!empty($category_scores)): ?>
+                                <hr class="mt-3 mb-2">
+                                <p class="small text-muted mb-0">
+                                    <i class="bi bi-lightbulb text-warning"></i> <strong>Recommendation:</strong>
+                                    Focus training efforts on <?= htmlspecialchars($bottom_categories[0]['section']) ?>
+                                    to achieve balanced performance across all categories.
+                                </p>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Supervisor Comments Section -->
+                <div class="card shadow mb-4">
+                    <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                        <h6 class="m-0">
+                            <i class="bi bi-chat-left-text"></i> Supervisor Comments & Training Recommendations
+                        </h6>
+                        <button type="button" class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#commentModal">
+                            <i class="bi bi-pencil-square"></i> Add/Edit Comment
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <?php
+                        // Get latest comment
+                        $sql = "SELECT * FROM staff_comments 
+                                WHERE staff_id = ? 
+                                ORDER BY evaluation_year DESC 
+                                LIMIT 1";
+                        $stmt = $pdo->prepare($sql);
+                        $stmt->execute([$staff_id]);
+                        $latest_comment = $stmt->fetch();
+                        
+                        if ($latest_comment && ($latest_comment['supervisor_comment'] || $latest_comment['training_recommendation'])):
+                        ?>
+                            <div class="mb-3">
+                                <strong class="text-primary">Latest Comment (<?= $latest_comment['evaluation_year'] ?>):</strong>
+                                <p class="mt-2"><?= nl2br(htmlspecialchars($latest_comment['supervisor_comment'] ?: 'No comment provided')) ?></p>
+                            </div>
+                            
+                            <?php if ($latest_comment['training_recommendation']): ?>
+                                <div class="alert alert-success">
+                                    <strong><i class="bi bi-mortarboard-fill"></i> Training Recommendation:</strong>
+                                    <p class="mb-0 mt-2"><?= nl2br(htmlspecialchars($latest_comment['training_recommendation'])) ?></p>
+                                </div>
+                            <?php endif; ?>
+                        <?php else: ?>
+                            <p class="text-muted">
+                                <i class="bi bi-info-circle"></i> No comments added yet. Click "Add/Edit Comment" to provide feedback.
+                            </p>
+                        <?php endif; ?>
                     </div>
                 </div>
             </main>
         </div>
     </div>
 
+    <!-- Comment Modal -->
+    <div class="modal fade" id="commentModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content" x-data="commentAssistant(<?= $staff_id ?>, <?= $_SESSION['supervisor_id'] ?>)">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-magic"></i> Smart Comment Assistant
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Year Selection -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Evaluation Year:</label>
+                        <select x-model="selectedYear" class="form-select">
+                            <?php for ($y = 2026; $y >= 2021; $y--): ?>
+                                <option value="<?= $y ?>"><?= $y ?></option>
+                            <?php endfor; ?>
+                        </select>
+                    </div>
+                    
+                    <!-- Quick Templates -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-collection"></i> Quick Templates:
+                        </label>
+                        <div class="row g-2">
+                            <template x-for="template in getTemplates()" :key="template.name">
+                                <div class="col-md-6">
+                                    <button 
+                                        type="button" 
+                                        class="btn btn-outline-primary w-100 text-start btn-sm"
+                                        @click="applyTemplate(template)">
+                                        <i class="bi bi-file-text"></i>
+                                        <span x-text="template.name"></span>
+                                    </button>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                    
+                    <!-- Comment Text Area -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Performance Comment:</label>
+                        <textarea 
+                            x-model="comment" 
+                            class="form-control" 
+                            rows="5"
+                            placeholder="Type your comment or select a template above..."
+                            maxlength="1000">
+                        </textarea>
+                        <small class="text-muted">
+                            <span x-text="comment.length"></span> / 1000 characters
+                        </small>
+                    </div>
+                    
+                    <!-- Training Recommendation -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Training Recommendation:</label>
+                        <textarea 
+                            x-model="training" 
+                            class="form-control" 
+                            rows="3"
+                            placeholder="Recommend specific training programs..."
+                            maxlength="500">
+                        </textarea>
+                        <small class="text-muted">
+                            <span x-text="training.length"></span> / 500 characters
+                        </small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </button>
+                    <button 
+                        type="button" 
+                        @click="saveCommentAndClose()" 
+                        class="btn btn-primary"
+                        :disabled="comment.length === 0 || isSaving">
+                        <i class="bi bi-save"></i> Save Comment
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <script>
+        // Auto-open comment modal if coming from training needs
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('openComment') === 'true') {
+                const commentModal = new bootstrap.Modal(document.getElementById('commentModal'));
+                commentModal.show();
+            }
+        });
+    </script>
     
     <!-- Alpine.js Comment Assistant Component -->
     <script>
@@ -271,133 +507,28 @@ foreach ($names as $name) {
                 isSaving: false,
                 
                 init() {
-                    console.log('Alpine component initialized!');
-                    console.log('Staff ID:', this.staffId);
-                    console.log('Supervisor ID:', this.supervisorId);
-                    
-                    // Load existing comment silently (no notification)
                     this.loadExistingCommentSilent();
-                },
-                
-                // Watch for year changes
-                watch: {
-                    selectedYear() {
-                        this.loadExistingCommentSilent();
-                    }
                 },
                 
                 async loadExistingCommentSilent() {
                     try {
                         const year = this.selectedYear || new Date().getFullYear();
-                        console.log('Silently loading comment for year:', year);
-                        
                         const response = await fetch(`../api/kpi_api.php?action=get_staff_comment&staff_id=${this.staffId}&year=${year}`);
                         const data = await response.json();
                         
                         if (data.success && data.data) {
-                            // Check if comment actually has content
-                            if (data.data.supervisor_comment || data.data.training_recommendation) {
-                                this.comment = data.data.supervisor_comment || '';
-                                this.training = data.data.training_recommendation || '';
-                                console.log('Comment loaded silently');
-                            } else {
-                                // Comment exists but is empty
-                                this.comment = '';
-                                this.training = '';
-                                console.log('No comment content found');
-                            }
+                            this.comment = data.data.supervisor_comment || '';
+                            this.training = data.data.training_recommendation || '';
                         } else {
-                            // No comment found for this year
                             this.comment = '';
                             this.training = '';
-                            console.log('No comment found for year:', year);
-                        }
-                    } catch (error) {
-                        console.error('Failed to load comment silently:', error);
-                        this.comment = '';
-                        this.training = '';
-                    }
-                },
-                
-                async loadExistingComment() {
-                    try {
-                        const year = this.selectedYear || new Date().getFullYear();
-                        
-                        // Show loading notification
-                        const loadingToast = Swal.fire({
-                            title: 'Loading...',
-                            text: `Fetching comment for ${year}`,
-                            icon: 'info',
-                            showConfirmButton: false,
-                            timer: 500,
-                            timerProgressBar: true
-                        });
-                        
-                        const response = await fetch(`../api/kpi_api.php?action=get_staff_comment&staff_id=${this.staffId}&year=${year}`);
-                        const data = await response.json();
-                        
-                        if (data.success && data.data) {
-                            // Check if comment actually has content
-                            if (data.data.supervisor_comment || data.data.training_recommendation) {
-                                this.comment = data.data.supervisor_comment || '';
-                                this.training = data.data.training_recommendation || '';
-                                
-                                Swal.fire({
-                                    icon: 'success',
-                                    title: 'Comment Loaded!',
-                                    text: `Successfully loaded comment for ${year}`,
-                                    timer: 2000,
-                                    showConfirmButton: false
-                                });
-                            } else {
-                                // Comment exists but is empty
-                                this.comment = '';
-                                this.training = '';
-                                
-                                Swal.fire({
-                                    icon: 'info',
-                                    title: 'No Comment Found',
-                                    text: `No comment exists for ${year}`,
-                                    timer: 2000,
-                                    showConfirmButton: false
-                                });
-                            }
-                        } else {
-                            // No comment found for this year
-                            this.comment = '';
-                            this.training = '';
-                            
-                            Swal.fire({
-                                icon: 'info',
-                                title: 'No Comment Found',
-                                text: `No comment exists for ${year}`,
-                                timer: 2000,
-                                showConfirmButton: false
-                            });
                         }
                     } catch (error) {
                         console.error('Failed to load comment:', error);
-                        this.comment = '';
-                        this.training = '';
-                        
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error Loading Comment',
-                            text: 'Failed to fetch comment from server',
-                            confirmButtonText: 'OK'
-                        });
                     }
                 },
                 
-                debouncedSave() {
-                    // Debounce save to avoid too many API calls
-                    clearTimeout(this.saveTimeout);
-                    this.saveTimeout = setTimeout(() => {
-                        this.saveComment();
-                    }, 1000);
-                },
-                
-                async saveComment() {
+                async saveCommentAndClose() {
                     if (this.comment.length === 0) {
                         Swal.fire({
                             icon: 'warning',
@@ -432,9 +563,11 @@ foreach ($names as $name) {
                             Swal.fire({
                                 icon: 'success',
                                 title: 'Comment Saved!',
-                                text: `Comment for ${year} has been saved successfully`,
-                                timer: 2000,
+                                text: 'Reloading page to show updated comment...',
+                                timer: 1500,
                                 showConfirmButton: false
+                            }).then(() => {
+                                window.location.reload();
                             });
                         } else {
                             Swal.fire({
@@ -478,11 +611,6 @@ foreach ($names as $name) {
                             name: 'Customer Service Focus',
                             comment: 'Good customer interaction skills but needs improvement in handling difficult situations.',
                             training: 'Customer service excellence training with focus on conflict resolution.'
-                        },
-                        {
-                            name: 'Sales Performance',
-                            comment: 'Sales targets met but could improve in upselling and customer retention.',
-                            training: 'Advanced sales techniques and relationship building workshop.'
                         }
                     ];
                 },
@@ -490,15 +618,168 @@ foreach ($names as $name) {
                 applyTemplate(template) {
                     this.comment = template.comment;
                     this.training = template.training;
-                    this.debouncedSave();
-                },
-                
-                clearAll() {
-                    this.comment = '';
-                    this.training = '';
                 }
             }
         }
     </script>
 </body>
 </html>
+
+    <!-- Chart Rendering Scripts -->
+    <script>
+        // Performance Trend Chart
+        <?php if (!empty($trend)): ?>
+        const trendCtx = document.getElementById('trendChart');
+        if (trendCtx) {
+            new Chart(trendCtx, {
+                type: 'line',
+                data: {
+                    labels: <?= json_encode(array_column($trend, 'year')) ?>,
+                    datasets: [{
+                        label: 'Overall Score (%)',
+                        data: <?= json_encode(array_column($trend, 'overall_score')) ?>,
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 6,
+                        pointHoverRadius: 8,
+                        pointBackgroundColor: '#667eea',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return 'Score: ' + context.parsed.y.toFixed(1) + '%';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        <?php endif; ?>
+
+        // Gauge Chart (Doughnut)
+        const gaugeCtx = document.getElementById('gaugeChart');
+        if (gaugeCtx) {
+            const score = <?= $current_data['overall_score'] ?>;
+            const remaining = 100 - score;
+            
+            new Chart(gaugeCtx, {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [score, remaining],
+                        backgroundColor: [
+                            score >= 85 ? '#28a745' : 
+                            score >= 70 ? '#17a2b8' : 
+                            score >= 50 ? '#ffc107' : '#dc3545',
+                            '#e9ecef'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '75%',
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { enabled: false }
+                    }
+                }
+            });
+        }
+
+        // Category Breakdown Chart
+        <?php
+        $sql = "SELECT km.section, AVG(ks.score) as avg_score
+                FROM kpi_scores ks
+                JOIN kpi_master km ON ks.kpi_code = km.kpi_code
+                WHERE ks.staff_id = ? AND ks.evaluation_year = ?
+                GROUP BY km.section
+                ORDER BY km.section";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$staff_id, $current_year]);
+        $category_data = $stmt->fetchAll();
+        
+        if (!empty($category_data)):
+        ?>
+        const categoryCtx = document.getElementById('categoryChart');
+        if (categoryCtx) {
+            const categoryLabels = <?= json_encode(array_column($category_data, 'section')) ?>;
+            const categoryScores = <?= json_encode(array_column($category_data, 'avg_score')) ?>;
+
+            const barColors = categoryScores.map(score => {
+                if (score >= 4)   return 'rgba(28, 200, 138, 0.85)';
+                if (score >= 3)   return 'rgba(54, 185, 204, 0.85)';
+                if (score >= 2)   return 'rgba(255, 193, 7, 0.85)';
+                return 'rgba(231, 74, 59, 0.85)';
+            });
+
+            new Chart(categoryCtx, {
+                type: 'bar',
+                data: {
+                    labels: categoryLabels,
+                    datasets: [{
+                        label: 'Avg Score',
+                        data: categoryScores,
+                        backgroundColor: barColors,
+                        borderColor: barColors.map(c => c.replace('0.85', '1')),
+                        borderWidth: 2,
+                        borderRadius: 6,
+                        borderSkipped: false
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            max: 5,
+                            ticks: { stepSize: 1 },
+                            grid: { color: 'rgba(0,0,0,0.05)' },
+                            title: { display: true, text: 'Score (out of 5)', font: { size: 12 } }
+                        },
+                        y: {
+                            grid: { display: false },
+                            ticks: { font: { size: 12, weight: '600' } }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: ctx => ` Score: ${ctx.parsed.x.toFixed(2)} / 5`
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        <?php endif; ?>
+    </script>

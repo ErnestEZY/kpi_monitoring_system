@@ -10,9 +10,8 @@ $pdo = getDBConnection();
 $calculator = new KPICalculator($pdo);
 
 // Get available years
-$sql = "SELECT DISTINCT evaluation_year FROM kpi_scores ORDER BY evaluation_year DESC";
-$stmt = $pdo->query($sql);
-$available_years = $stmt->fetchAll(PDO::FETCH_COLUMN);
+// Fixed year range: 2026 down to 2021
+$available_years = range(2026, 2021);
 
 // Get unique departments from staff table
 $sql = "SELECT DISTINCT department FROM staff WHERE department IS NOT NULL ORDER BY department";
@@ -42,14 +41,22 @@ $current_year = date('Y');
             color: white;
             font-weight: 600;
         }
-        .filter-card .form-select,
         .filter-card .form-control {
             border: 2px solid rgba(255,255,255,0.3);
             background: rgba(255,255,255,0.9);
         }
+        .filter-card .form-select {
+            border: 2px solid rgba(255,255,255,0.3);
+            background-color: rgba(255,255,255,0.9);
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 16px 12px;
+            padding-right: 2.25rem;
+        }
         .chart-container {
             position: relative;
-            height: 400px;
+            height: 280px;
         }
         .stat-card {
             transition: transform 0.3s;
@@ -132,7 +139,13 @@ $current_year = date('Y');
                             <div class="card-body text-center">
                                 <i class="bi bi-graph-up fs-1 text-success"></i>
                                 <h3 class="mt-2" id="avgScore">-</h3>
-                                <p class="text-muted mb-0">Average Score</p>
+                                <p class="text-muted mb-0">
+                                    Average Score
+                                    <i class="bi bi-info-circle text-primary" 
+                                       data-bs-toggle="tooltip" 
+                                       data-bs-placement="top" 
+                                       title="Calculated as: Sum of all staff overall scores ÷ Number of staff with data. Overall score = Weighted average of all 21 KPI scores (each KPI score 1-5, multiplied by its weight percentage)."></i>
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -158,8 +171,8 @@ $current_year = date('Y');
 
                 <!-- Charts Row 1 -->
                 <div class="row mb-4">
-                    <div class="col-lg-6">
-                        <div class="card shadow">
+                    <div class="col-lg-6 d-flex">
+                        <div class="card shadow w-100">
                             <div class="card-header">
                                 <h6 class="m-0 font-weight-bold text-primary">
                                     <i class="bi bi-pie-chart"></i> Performance Distribution
@@ -169,11 +182,17 @@ $current_year = date('Y');
                                 <div class="chart-container">
                                     <canvas id="distributionChart"></canvas>
                                 </div>
+                                <div class="mt-1 p-2 bg-light rounded">
+                                    <p class="mb-0 small text-muted">
+                                        <i class="bi bi-lightbulb-fill text-warning"></i> <strong>Insight:</strong> 
+                                        <span id="distributionStory">This chart shows how your team is distributed across performance levels. A healthy team typically has most staff in "Good Performer" or above categories.</span>
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="col-lg-6">
-                        <div class="card shadow">
+                    <div class="col-lg-6 d-flex">
+                        <div class="card shadow w-100">
                             <div class="card-header">
                                 <h6 class="m-0 font-weight-bold text-primary">
                                     <i class="bi bi-bar-chart"></i> Department Comparison
@@ -183,6 +202,12 @@ $current_year = date('Y');
                                 <div class="chart-container">
                                     <canvas id="departmentChart"></canvas>
                                 </div>
+                                <div class="mt-1 p-2 bg-light rounded">
+                                    <p class="mb-0 small text-muted">
+                                        <i class="bi bi-lightbulb-fill text-warning"></i> <strong>Insight:</strong> 
+                                        <span id="departmentStory">Compare average performance across departments. Departments with lower scores may need additional training resources or process improvements.</span>
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -190,8 +215,8 @@ $current_year = date('Y');
 
                 <!-- Charts Row 2 -->
                 <div class="row mb-4">
-                    <div class="col-lg-12">
-                        <div class="card shadow">
+                    <div class="col-lg-6 d-flex">
+                        <div class="card shadow w-100">
                             <div class="card-header">
                                 <h6 class="m-0 font-weight-bold text-primary">
                                     <i class="bi bi-graph-up-arrow"></i> Multi-Year Trend Analysis
@@ -201,15 +226,17 @@ $current_year = date('Y');
                                 <div class="chart-container">
                                     <canvas id="trendChart"></canvas>
                                 </div>
+                                <div class="mt-1 p-2 bg-light rounded">
+                                    <p class="mb-0 small text-muted">
+                                        <i class="bi bi-lightbulb-fill text-warning"></i> <strong>Insight:</strong> 
+                                        <span id="trendStory">Track performance evolution over multiple years. Upward trends indicate successful training programs, while declining trends signal need for intervention.</span>
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-
-                <!-- Charts Row 3 -->
-                <div class="row mb-4">
-                    <div class="col-lg-6">
-                        <div class="card shadow">
+                    <div class="col-lg-6 d-flex">
+                        <div class="card shadow w-100">
                             <div class="card-header">
                                 <h6 class="m-0 font-weight-bold text-primary">
                                     <i class="bi bi-speedometer2"></i> KPI Category Averages
@@ -219,11 +246,21 @@ $current_year = date('Y');
                                 <div class="chart-container">
                                     <canvas id="categoryChart"></canvas>
                                 </div>
+                                <div class="mt-1 p-2 bg-light rounded">
+                                    <p class="mb-0 small text-muted">
+                                        <i class="bi bi-lightbulb-fill text-warning"></i> <strong>Insight:</strong> 
+                                        <span id="categoryStory">Identify which KPI categories your team excels in and which need improvement. Use this to target training programs effectively.</span>
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="col-lg-6">
-                        <div class="card shadow">
+                </div>
+
+                <!-- Charts Row 3 -->
+                <div class="row mb-4">
+                    <div class="col-lg-6 d-flex">
+                        <div class="card shadow w-100">
                             <div class="card-header">
                                 <h6 class="m-0 font-weight-bold text-primary">
                                     <i class="bi bi-bar-chart-fill"></i> Score Distribution Analysis
@@ -233,43 +270,49 @@ $current_year = date('Y');
                                 <div class="chart-container">
                                     <canvas id="boxPlotChart"></canvas>
                                 </div>
+                                <div class="mt-1 p-2 bg-light rounded">
+                                    <p class="mb-0 small text-muted">
+                                        <i class="bi bi-lightbulb-fill text-warning"></i> <strong>Insight:</strong> 
+                                        <span id="boxPlotStory">This distribution shows score concentration. A balanced distribution suggests consistent performance standards, while clustering at extremes may indicate training gaps.</span>
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-
-                <!-- Drill-Down Table -->
-                <div class="card shadow mb-4">
-                    <div class="card-header">
-                        <h6 class="m-0 font-weight-bold text-primary">
-                            <i class="bi bi-table"></i> Detailed Staff Data
-                        </h6>
-                        <small class="text-muted">Click "View" button to see individual staff profile with complete KPI breakdown</small>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-hover" id="staffTable">
-                                <thead>
-                                    <tr>
-                                        <th>Staff ID</th>
-                                        <th>Name</th>
-                                        <th>Department</th>
-                                        <th>Overall Score</th>
-                                        <th>Classification</th>
-                                        <th>Trend</th>
-                                        <th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="staffTableBody">
-                                    <tr>
-                                        <td colspan="7" class="text-center">
-                                            <div class="spinner-border text-primary" role="status">
-                                                <span class="visually-hidden">Loading...</span>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                    <div class="col-lg-6 d-flex">
+                        <div class="card shadow w-100">
+                            <div class="card-header">
+                                <h6 class="m-0 font-weight-bold text-primary">
+                                    <i class="bi bi-table"></i> Detailed Staff Data
+                                </h6>
+                                <small class="text-muted">Click "View" button to see individual staff profile with complete KPI breakdown</small>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive" style="max-height: 320px; overflow-y: auto;">
+                                    <table class="table table-hover" id="staffTable">
+                                        <thead>
+                                            <tr>
+                                                <th>Staff ID</th>
+                                                <th>Name</th>
+                                                <th>Department</th>
+                                                <th>Overall Score</th>
+                                                <th>Classification</th>
+                                                <th>Trend</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="staffTableBody">
+                                            <tr>
+                                                <td colspan="7" class="text-center">
+                                                    <div class="spinner-border text-primary" role="status">
+                                                        <span class="visually-hidden">Loading...</span>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -282,3 +325,4 @@ $current_year = date('Y');
     <script src="../assets/js/analytics.js"></script>
 </body>
 </html>
+

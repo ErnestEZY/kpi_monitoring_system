@@ -1,7 +1,8 @@
 <?php
 /**
  * Innovative Features API
- * Handles: Predictive Alerts, Training Recommendations, Gamification, Peer Comparison
+ * Handles: Predictive Alerts, Training Recommendations, Gamification, Peer Comparison.
+ * All endpoints require an active supervisor session.
  */
 
 session_start();
@@ -9,14 +10,11 @@ require_once '../includes/auth.php';
 require_once '../config/database.php';
 require_once '../includes/KPICalculator.php';
 
-if (!isLoggedIn()) {
-    echo json_encode(['success' => false, 'message' => 'Unauthorized']);
-    exit();
-}
+requireLoginApi();
 
-$pdo = getDBConnection();
+$pdo        = getDBConnection();
 $calculator = new KPICalculator($pdo);
-$action = $_GET['action'] ?? $_POST['action'] ?? '';
+$action     = $_GET['action'] ?? $_POST['action'] ?? '';
 
 switch ($action) {
     case 'get_predictive_alerts':
@@ -37,6 +35,10 @@ switch ($action) {
     
     case 'get_staff_list':
         getStaffList($pdo);
+        break;
+    
+    case 'get_all_trends':
+        getAllTrends($pdo);
         break;
     
     case 'detect_anomalies':
@@ -1282,6 +1284,57 @@ function getStaffList($pdo) {
             'data' => $staff
         ]);
         
+    } catch (PDOException $e) {
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    }
+}
+
+/**
+ * Returns full yearly score history for every active staff member.
+ * Used by TensorFlow.js on the predictive alerts page to run
+ * client-side time-series forecasting.
+ */
+function getAllTrends($pdo) {
+    try {
+        // Fetch all yearly weighted-score sums per staff
+        $stmt = $pdo->query("
+            SELECT
+                s.staff_id,
+                s.staff_code,
+                s.name        AS staff_name,
+                s.department,
+                ks.evaluation_year,
+                ROUND(SUM(ks.weighted_score) * 100, 2) AS overall_score
+            FROM staff s
+            JOIN kpi_scores ks ON s.staff_id = ks.staff_id
+            WHERE s.status = 'Active'
+            GROUP BY s.staff_id, ks.evaluation_year
+            ORDER BY s.staff_id, ks.evaluation_year
+        ");
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Group by staff
+        $staff_map = [];
+        foreach ($rows as $row) {
+            $id = $row['staff_id'];
+            if (!isset($staff_map[$id])) {
+                $staff_map[$id] = [
+                    'staff_id'   => $id,
+                    'staff_code' => $row['staff_code'],
+                    'staff_name' => $row['staff_name'],
+                    'department' => $row['department'],
+                    'years'      => [],
+                    'scores'     => [],
+                ];
+            }
+            $staff_map[$id]['years'][]  = (int)$row['evaluation_year'];
+            $staff_map[$id]['scores'][] = (float)$row['overall_score'];
+        }
+
+        echo json_encode([
+            'success' => true,
+            'data'    => array_values($staff_map),
+        ]);
     } catch (PDOException $e) {
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }

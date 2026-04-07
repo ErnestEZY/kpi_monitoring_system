@@ -9,13 +9,6 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'kpi_dashboard.php' ? 'active' : '' ?>" 
-                   href="kpi_dashboard.php">
-                    <i class="bi bi-speedometer2"></i>
-                    KPI Dashboard
-                </a>
-            </li>
-            <li class="nav-item">
                 <a class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'kpi_entry.php' ? 'active' : '' ?>" 
                    href="kpi_entry.php">
                     <i class="bi bi-pencil-square"></i>

@@ -469,6 +469,9 @@ $pdo = getDBConnection();
                                             <button class="btn btn-primary btn-sm w-100 mb-2" onclick="viewTrainingDetails(${rec.staff_id}, '${rec.recommended_program}')">
                                                 <i class="bi bi-eye"></i> View Details
                                             </button>
+                                            <button class="btn btn-info btn-sm w-100 mb-2" onclick="editComment(${rec.staff_id})">
+                                                <i class="bi bi-pencil-square"></i> Edit Comment
+                                            </button>
                                             <button class="btn btn-success btn-sm w-100" onclick="assignTrainingQuick(${rec.staff_id}, '${rec.recommended_program}')">
                                                 <i class="bi bi-check-circle"></i> Assign Now
                                             </button>
@@ -622,6 +625,11 @@ $pdo = getDBConnection();
                     });
                 }
             });
+        }
+        
+        function editComment(staffId) {
+            // Redirect to staff profile with modal open
+            window.location.href = `staff_profile.php?id=${staffId}&openComment=true`;
         }
     </script>
 </body>

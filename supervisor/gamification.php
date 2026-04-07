@@ -13,9 +13,8 @@ $current_year = date('Y');
 $selected_year = $_GET['year'] ?? $current_year;
 
 // Get available years
-$sql = "SELECT DISTINCT evaluation_year FROM kpi_scores ORDER BY evaluation_year DESC";
-$stmt = $pdo->query($sql);
-$available_years = $stmt->fetchAll(PDO::FETCH_COLUMN);
+// Fixed year range: 2026 down to 2021
+$available_years = range(2026, 2021);
 
 // Get all active staff with scores
 $sql = "SELECT staff_id, staff_code as staff_number, name as full_name, department as department_name, status

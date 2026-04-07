@@ -9,6 +9,12 @@ let currentFilters = {
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Bootstrap tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    });
+    
     loadAnalytics();
 });
 
@@ -22,44 +28,44 @@ function applyFilters() {
 }
 
 async function loadAnalytics() {
-    try {
-        // Load all data
-        await Promise.all([
-            loadKeyMetrics(),
-            loadDistributionChart(),
-            loadDepartmentChart(),
-            loadTrendChart(),
-            loadCategoryChart(),
-            loadBoxPlotChart(),
-            loadStaffTable()
-        ]);
-    } catch (error) {
-        console.error('Error loading analytics:', error);
-    }
+    // Run all chart loaders in parallel; individual failures are caught inside each function
+    await Promise.allSettled([
+        loadKeyMetrics(),
+        loadDistributionChart(),
+        loadDepartmentChart(),
+        loadTrendChart(),
+        loadCategoryChart(),
+        loadBoxPlotChart(),
+        loadStaffTable(),
+    ]);
 }
 
 async function loadKeyMetrics() {
-    const response = await fetch(`../api/kpi_calculations.php?action=all_staff_scores&year=${currentFilters.year}`);
-    const data = await response.json();
+    try {
+        const response = await fetch(`../api/kpi_calculations.php?action=all_staff_scores&year=${currentFilters.year}`);
+        const data = await response.json();
     
-    if (data.success) {
-        let filteredData = filterStaffData(data.data);
+        if (data.success) {
+            let filteredData = filterStaffData(data.data);
         
-        // Total staff
-        document.getElementById('totalStaff').textContent = filteredData.length;
+            // Total staff
+            document.getElementById('totalStaff').textContent = filteredData.length;
         
-        // Average score
-        const scores = filteredData.filter(s => s.has_data).map(s => s.overall_score);
-        const avgScore = scores.length > 0 ? (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1) : 0;
-        document.getElementById('avgScore').textContent = avgScore + '%';
+            // Average score
+            const scores = filteredData.filter(s => s.has_data).map(s => s.overall_score);
+            const avgScore = scores.length > 0 ? (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1) : 0;
+            document.getElementById('avgScore').textContent = avgScore + '%';
         
-        // Top performers
-        const topPerformers = filteredData.filter(s => s.overall_score >= 85).length;
-        document.getElementById('topPerformers').textContent = topPerformers;
+            // Top performers
+            const topPerformers = filteredData.filter(s => s.overall_score >= 85).length;
+            document.getElementById('topPerformers').textContent = topPerformers;
         
-        // At-risk (score < 70 or critical)
-        const atRisk = filteredData.filter(s => s.overall_score < 70 && s.has_data).length;
-        document.getElementById('atRisk').textContent = atRisk;
+            // At-risk (score < 70 or critical)
+            const atRisk = filteredData.filter(s => s.overall_score < 70 && s.has_data).length;
+            document.getElementById('atRisk').textContent = atRisk;
+        }
+    } catch (error) {
+        console.error('[loadKeyMetrics]', error);
     }
 }
 
@@ -110,8 +116,46 @@ async function loadDistributionChart() {
                         }
                     }
                 }
-            }
+            },
+            plugins: [{
+                id: 'centerText',
+                beforeDraw: function(chart) {
+                    const { top, bottom, left, right } = chart.chartArea;
+                    const centerX = (left + right) / 2;
+                    const centerY = (top + bottom) / 2;
+                    const ctx = chart.ctx;
+                    ctx.restore();
+                    
+                    const fontSize = ((bottom - top) / 180).toFixed(2);
+                    ctx.font = `bold ${fontSize}em sans-serif`;
+                    ctx.textBaseline = "middle";
+                    ctx.textAlign = "center";
+                    ctx.fillStyle = "#999";
+                    
+                    const text = "Year " + currentFilters.year;
+                    ctx.fillText(text, centerX, centerY);
+                    ctx.save();
+                }
+            }]
         });
+        
+        // Generate storytelling
+        const total = Object.values(data.data).reduce((a, b) => a + b, 0);
+        const topPerformers = data.data['Top Performer'] || 0;
+        const critical = data.data['Critical'] || 0;
+        const topPercentage = ((topPerformers / total) * 100).toFixed(1);
+        const criticalPercentage = ((critical / total) * 100).toFixed(1);
+        
+        let story = '';
+        if (topPerformers >= total * 0.3) {
+            story = `Excellent! ${topPercentage}% of your team are top performers. This indicates strong overall performance and effective training programs.`;
+        } else if (critical >= total * 0.2) {
+            story = `Alert: ${criticalPercentage}% of staff are in critical performance levels. Immediate intervention and targeted training programs are recommended.`;
+        } else {
+            story = `Your team shows a balanced distribution. Focus on moving "Satisfactory" performers to "Good Performer" level through targeted coaching.`;
+        }
+        
+        document.getElementById('distributionStory').textContent = story;
     }
 }
 
@@ -177,35 +221,56 @@ async function loadDepartmentChart() {
                 }
             }
         });
+        
+        // Generate storytelling
+        const deptScoresArray = Object.entries(deptAverages).map(([dept, score]) => ({dept, score: parseFloat(score)}));
+        deptScoresArray.sort((a, b) => b.score - a.score);
+        
+        const highest = deptScoresArray[0];
+        const lowest = deptScoresArray[deptScoresArray.length - 1];
+        const gap = (highest.score - lowest.score).toFixed(1);
+        
+        let story = '';
+        if (gap > 15) {
+            story = `Significant performance gap detected: ${highest.dept} (${highest.score}%) outperforms ${lowest.dept} (${lowest.score}%) by ${gap}%. Consider cross-department knowledge sharing or investigate resource allocation.`;
+        } else if (gap < 5) {
+            story = `Consistent performance across departments with only ${gap}% variation. This indicates standardized training and processes are working well.`;
+        } else {
+            story = `${highest.dept} leads with ${highest.score}%, while ${lowest.dept} has room for improvement at ${lowest.score}%. Focus training resources on lower-performing departments.`;
+        }
+        
+        document.getElementById('departmentStory').textContent = story;
     }
 }
 
 async function loadTrendChart() {
-    // Get all years data
-    const years = [];
-    const yearSelect = document.getElementById('filterYear');
-    for (let option of yearSelect.options) {
-        years.push(option.value);
-    }
-    years.sort();
-    
-    const trendData = {};
-    
-    for (const year of years) {
-        const response = await fetch(`../api/kpi_calculations.php?action=all_staff_scores&year=${year}`);
-        const data = await response.json();
-        
-        if (data.success) {
+    try {
+        const years = Array.from(document.getElementById('filterYear').options)
+            .map(o => o.value)
+            .sort();
+
+        // Fetch all years in parallel instead of sequentially
+        const responses = await Promise.all(
+            years.map(year =>
+                fetch(`../api/kpi_calculations.php?action=all_staff_scores&year=${year}`)
+                    .then(r => r.json())
+                    .then(data => ({ year, data }))
+                    .catch(() => ({ year, data: null }))
+            )
+        );
+
+        const trendData = {};
+        for (const { year, data } of responses) {
+            if (!data?.success) continue;
             const scores = data.data.filter(s => s.has_data).map(s => s.overall_score);
             if (scores.length > 0) {
                 trendData[year] = {
                     avg: (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1),
                     min: Math.min(...scores).toFixed(1),
-                    max: Math.max(...scores).toFixed(1)
+                    max: Math.max(...scores).toFixed(1),
                 };
             }
         }
-    }
     
     const ctx = document.getElementById('trendChart').getContext('2d');
     
@@ -268,10 +333,35 @@ async function loadTrendChart() {
             }
         }
     });
+    
+    // Generate storytelling
+    const yearsArray = Object.keys(trendData);
+    if (yearsArray.length >= 2) {
+        const firstYear = yearsArray[0];
+        const lastYear = yearsArray[yearsArray.length - 1];
+        const firstAvg = parseFloat(trendData[firstYear].avg);
+        const lastAvg = parseFloat(trendData[lastYear].avg);
+        const change = (lastAvg - firstAvg).toFixed(1);
+        
+        let story = '';
+        if (change > 5) {
+            story = `Positive trend: Team performance improved by ${change}% from ${firstYear} (${firstAvg}%) to ${lastYear} (${lastAvg}%). Your training initiatives are showing measurable results.`;
+        } else if (change < -5) {
+            story = `Concerning trend: Performance declined by ${Math.abs(change)}% from ${firstYear} to ${lastYear}. Immediate review of training programs and staff support systems recommended.`;
+        } else {
+            story = `Stable performance: Team maintains consistent scores around ${lastAvg}% over ${yearsArray.length} years. Consider setting new performance targets to drive improvement.`;
+        }
+        
+        document.getElementById('trendStory').textContent = story;
+        }
+    } catch (error) {
+        console.error('[loadTrendChart]', error);
+    }
 }
 
 async function loadCategoryChart() {
-    const response = await fetch(`../api/kpi_calculations.php?action=category_averages&year=${currentFilters.year}`);
+    try {
+        const response = await fetch(`../api/kpi_calculations.php?action=category_averages&year=${currentFilters.year}`);
     const data = await response.json();
     
     if (data.success) {
@@ -315,12 +405,28 @@ async function loadCategoryChart() {
                 }
             }
         });
+        
+        // Generate storytelling
+        const categories = data.data.map(c => ({name: c.category, score: parseFloat(c.average)}));
+        categories.sort((a, b) => b.score - a.score);
+        
+        const strongest = categories[0];
+        const weakest = categories[categories.length - 1];
+        
+        let story = `Team excels in ${strongest.name} (${strongest.score.toFixed(1)}%) but needs improvement in ${weakest.name} (${weakest.score.toFixed(1)}%). `;
+        story += `Allocate training resources to strengthen weaker categories while maintaining excellence in top-performing areas.`;
+        
+        document.getElementById('categoryStory').textContent = story;
+        }
+    } catch (error) {
+        console.error('[loadCategoryChart]', error);
     }
 }
 
 async function loadBoxPlotChart() {
-    const response = await fetch(`../api/kpi_calculations.php?action=all_staff_scores&year=${currentFilters.year}`);
-    const data = await response.json();
+    try {
+        const response = await fetch(`../api/kpi_calculations.php?action=all_staff_scores&year=${currentFilters.year}`);
+        const data = await response.json();
     
     if (data.success) {
         const scores = data.data.filter(s => s.has_data).map(s => s.overall_score);
@@ -432,12 +538,34 @@ async function loadBoxPlotChart() {
                 }
             }
         });
+        
+        // Generate storytelling
+        const range = max - min;
+        const belowMedian = scores.filter(s => s < median).length;
+        const aboveMedian = scores.filter(s => s > median).length;
+        
+        let story = '';
+        if (range > 50) {
+            story = `Wide performance range (${range.toFixed(1)}% spread) indicates inconsistent skill levels. Consider implementing mentorship programs pairing top performers with those needing support.`;
+        } else if (median < 60) {
+            story = `Median score of ${median.toFixed(1)}% is below target. ${belowMedian} staff members score below median. Comprehensive training program recommended for team-wide improvement.`;
+        } else if (median >= 75) {
+            story = `Strong team performance with median at ${median.toFixed(1)}%. ${aboveMedian} staff exceed median. Focus on elevating the ${belowMedian} below-median performers to achieve excellence across the board.`;
+        } else {
+            story = `Moderate performance with median at ${median.toFixed(1)}%. Balanced approach needed: recognize high performers while providing targeted support to those below median.`;
+        }
+        
+        document.getElementById('boxPlotStory').textContent = story;
+        }
+    } catch (error) {
+        console.error('[loadBoxPlotChart]', error);
     }
 }
 
 async function loadStaffTable() {
-    const response = await fetch(`../api/kpi_calculations.php?action=all_staff_scores&year=${currentFilters.year}`);
-    const data = await response.json();
+    try {
+        const response = await fetch(`../api/kpi_calculations.php?action=all_staff_scores&year=${currentFilters.year}`);
+        const data = await response.json();
     
     if (data.success) {
         let filteredData = filterStaffData(data.data);
@@ -490,17 +618,20 @@ async function loadStaffTable() {
                     }
                 });
         });
+        }
+    } catch (error) {
+        console.error('[loadStaffTable]', error);
     }
 }
 
 function filterStaffData(data) {
     let filtered = data;
-    
-    // Filter by department
+
+    // Filter by department — data uses 'department' string, not a numeric ID
     if (currentFilters.department) {
-        filtered = filtered.filter(s => s.department_id == currentFilters.department);
+        filtered = filtered.filter(s => s.department === currentFilters.department);
     }
-    
+
     // Filter by performance level
     if (currentFilters.performance) {
         switch (currentFilters.performance) {
@@ -521,6 +652,6 @@ function filterStaffData(data) {
                 break;
         }
     }
-    
+
     return filtered;
 }

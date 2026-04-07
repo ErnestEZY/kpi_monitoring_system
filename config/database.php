@@ -1,26 +1,48 @@
 <?php
-// Database Configuration
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'kpi_system');
-define('DB_USER', 'root');
-define('DB_PASS', '');
-define('DB_CHARSET', 'utf8mb4');
+/**
+ * Database Configuration
+ * Single source of truth for all DB connection settings.
+ */
 
-// Create database connection using PDO
-function getDBConnection() {
-    try {
-        $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET;
-        $options = [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            PDO::ATTR_EMULATE_PREPARES => false,
-        ];
-        
-        $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
+const DB_HOST    = 'localhost';
+const DB_NAME    = 'kpi_system';
+const DB_USER    = 'root';
+const DB_PASS    = '';
+const DB_CHARSET = 'utf8mb4';
+
+/**
+ * Returns a PDO connection with strict error mode enabled.
+ * Terminates with a safe message on failure (details logged, not exposed).
+ *
+ * @return PDO
+ */
+function getDBConnection(): PDO {
+    static $pdo = null;          // reuse within a single request
+
+    if ($pdo !== null) {
         return $pdo;
+    }
+
+    try {
+        $dsn = sprintf(
+            'mysql:host=%s;dbname=%s;charset=%s',
+            DB_HOST, DB_NAME, DB_CHARSET
+        );
+
+        $pdo = new PDO($dsn, DB_USER, DB_PASS, [
+            PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_EMULATE_PREPARES   => false,
+        ]);
+
+        return $pdo;
+
     } catch (PDOException $e) {
-        error_log("Database Connection Error: " . $e->getMessage());
-        die("Database connection failed. Please check your configuration.");
+        error_log('[DB] Connection failed: ' . $e->getMessage());
+        http_response_code(500);
+        die(json_encode([
+            'success' => false,
+            'message' => 'Database unavailable. Please try again later.',
+        ]));
     }
 }
-?>

@@ -63,9 +63,10 @@ class KPICalculator {
             ];
         }
         
-        // Overall score is sum of all weighted scores (already calculated in database)
-        // Convert to percentage (1-5 scale to 0-100)
-        $overall_score = ($total_weighted_score / 5) * 100;
+        // weighted_score per KPI = (score/5) * (weight_percentage/100)
+        // Sum of all weighted_scores is in range 0.0 – 1.0
+        // Multiply by 100 to get a 0–100% overall score
+        $overall_score = $total_weighted_score * 100;
         
         return [
             'overall_score' => round($overall_score, 2),
@@ -75,46 +76,47 @@ class KPICalculator {
     }
     
     /**
-     * Get performance trend for a staff member across years
-     * @param int $staff_id
-     * @return array
+     * Get performance trend for a staff member across all recorded years.
+     *
+     * @param  int   $staff_id
+     * @return array Each element: ['year', 'overall_score', 'change', 'change_percentage', 'trend']
      */
-    public function getPerformanceTrend($staff_id) {
-        $sql = "SELECT DISTINCT evaluation_year 
-                FROM kpi_scores 
-                WHERE staff_id = ? 
+    public function getPerformanceTrend(int $staff_id): array {
+        $sql = "SELECT DISTINCT evaluation_year
+                FROM kpi_scores
+                WHERE staff_id = ?
                 ORDER BY evaluation_year";
-        
+
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([$staff_id]);
         $years = $stmt->fetchAll(PDO::FETCH_COLUMN);
-        
-        $trend_data = [];
+
+        $trend_data     = [];
         $previous_score = null;
-        
+
         foreach ($years as $year) {
-            $result = $this->calculateOverallScore($staff_id, $year);
+            $result        = $this->calculateOverallScore($staff_id, $year);
             $current_score = $result['overall_score'];
-            
-            $change = null;
+
+            $change            = null;
             $change_percentage = null;
-            
+
             if ($previous_score !== null && $previous_score > 0) {
-                $change = $current_score - $previous_score;
-                $change_percentage = ($change / $previous_score) * 100;
+                $change            = $current_score - $previous_score;
+                $change_percentage = round(($change / $previous_score) * 100, 2);
             }
-            
+
             $trend_data[] = [
-                'year' => $year,
-                'overall_score' => $current_score,
-                'change' => $change,
-                'change_percentage' => $change_percentage ? round($change_percentage, 2) : null,
-                'trend' => $this->determineTrend($change)
+                'year'              => $year,
+                'overall_score'     => $current_score,
+                'change'            => $change,
+                'change_percentage' => $change_percentage,
+                'trend'             => $this->determineTrend($change),
             ];
-            
+
             $previous_score = $current_score;
         }
-        
+
         return $trend_data;
     }
     
@@ -173,72 +175,69 @@ class KPICalculator {
     }
     
     /**
-     * Identify at-risk staff members
-     * Criteria: Score < 70 for 2+ consecutive years OR score < 60 in current year
+     * Identify at-risk staff members for a specific year.
+     * Criteria:
+     *   - Score < 60 in the selected year → High risk
+     *   - Score < 70 in both the selected year AND the year before → Medium risk
+     *
+     * @param  int|null $current_year  The year to evaluate (defaults to current year)
+     * @return array
      */
-    public function getAtRiskStaff($current_year = null) {
-        if ($current_year === null) {
-            $current_year = date('Y');
-        }
-        
+    public function getAtRiskStaff(?int $current_year = null): array {
+        $current_year = $current_year ?? (int) date('Y');
+        $prev_year    = $current_year - 1;
+
         $sql = "SELECT DISTINCT s.staff_id, s.name as full_name, s.staff_code as staff_number
                 FROM staff s
                 WHERE s.status = 'Active'";
-        
+
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute();
         $staff_list = $stmt->fetchAll();
-        
+
         $at_risk = [];
-        
+
         foreach ($staff_list as $staff) {
-            $trend = $this->getPerformanceTrend($staff['staff_id']);
-            
-            if (empty($trend)) continue;
-            
-            // Get last two years of data
-            $recent_years = array_slice($trend, -2);
-            
-            // Check if current year score is critically low
-            $latest = end($trend);
-            if ($latest['overall_score'] < 60) {
+            // Score for the selected year only
+            $current_data = $this->calculateOverallScore($staff['staff_id'], $current_year);
+
+            if (!$current_data['has_data']) continue;
+
+            $current_score = $current_data['overall_score'];
+
+            // Critically low in the selected year
+            if ($current_score < 60) {
                 $at_risk[] = [
-                    'staff_id' => $staff['staff_id'],
-                    'staff_number' => $staff['staff_number'],
-                    'full_name' => $staff['full_name'],
-                    'current_score' => $latest['overall_score'],
-                    'risk_level' => 'High',
-                    'reason' => 'Critical performance level (below 60)'
+                    'staff_id'      => $staff['staff_id'],
+                    'staff_number'  => $staff['staff_number'],
+                    'full_name'     => $staff['full_name'],
+                    'current_score' => $current_score,
+                    'risk_level'    => 'High',
+                    'reason'        => 'Critical performance level (below 60%)',
                 ];
                 continue;
             }
-            
-            // Check for consecutive low performance
-            if (count($recent_years) >= 2) {
-                $all_below_threshold = true;
-                foreach ($recent_years as $year_data) {
-                    if ($year_data['overall_score'] >= 70) {
-                        $all_below_threshold = false;
-                        break;
-                    }
-                }
-                
-                if ($all_below_threshold) {
+
+            // Below 70 in both selected year and the year before
+            if ($current_score < 70) {
+                $prev_data = $this->calculateOverallScore($staff['staff_id'], $prev_year);
+
+                if ($prev_data['has_data'] && $prev_data['overall_score'] < 70) {
                     $at_risk[] = [
-                        'staff_id' => $staff['staff_id'],
-                        'staff_number' => $staff['staff_number'],
-                        'full_name' => $staff['full_name'],
-                        'current_score' => $latest['overall_score'],
-                        'risk_level' => 'Medium',
-                        'reason' => 'Consecutive years below 70'
+                        'staff_id'      => $staff['staff_id'],
+                        'staff_number'  => $staff['staff_number'],
+                        'full_name'     => $staff['full_name'],
+                        'current_score' => $current_score,
+                        'risk_level'    => 'Medium',
+                        'reason'        => "Below 70% for two consecutive years ($prev_year & $current_year)",
                     ];
                 }
             }
         }
-        
+
         return $at_risk;
     }
-    
+
     /**
      * Get top performers
      */
@@ -327,10 +326,10 @@ class KPICalculator {
         $classification = $this->classifyPerformance($current_score);
         $narrative[] = "Current Performance ({$current_year}): {$classification} with an overall score of {$current_score}%.";
         
-        // Trend analysis
+        // Trend analysis (safe index access — no prev() pointer issues)
         if (count($trend) > 1) {
             $previous = $trend[count($trend) - 2];
-            $change = $current_score - $previous['overall_score'];
+            $change   = $current_score - $previous['overall_score'];
             
             if ($change > 5) {
                 $narrative[] = "Shows significant improvement of " . round($change, 1) . " points compared to {$previous['year']}.";
@@ -407,7 +406,7 @@ class KPICalculator {
         $stmt->execute([$year]);
         $result = $stmt->fetch();
         $team_avg_raw = $result['team_avg'];
-        $team_avg = round(($team_avg_raw / 5) * 100, 2); // Convert to percentage
+        $team_avg = round($team_avg_raw * 100, 2); // weighted_score sum is 0-1, ×100 = %
         
         $difference = $staff_score - $team_avg;
         

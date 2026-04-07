@@ -11,8 +11,8 @@ $stmt = $pdo->query("SELECT staff_id, staff_code, name, department FROM staff WH
 $staff_list = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Get available years
-$stmt = $pdo->query("SELECT DISTINCT evaluation_year FROM kpi_scores ORDER BY evaluation_year DESC");
-$years = $stmt->fetchAll(PDO::FETCH_COLUMN);
+// Fixed year range: 2026 down to 2021
+$years = range(2026, 2021);
 
 $current_year = date('Y');
 ?>
@@ -235,10 +235,20 @@ $current_year = date('Y');
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label">Compare With:</label>
-                                <select class="form-select" id="compareWithSelect">
+                                <select class="form-select" id="compareWithSelect" onchange="toggleSpecificStaffSelect()">
                                     <option value="auto">Auto-select Best Match</option>
                                     <option value="top">Top Performer</option>
                                     <option value="avg">Team Average</option>
+                                    <option value="specific">Specific Staff Member</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3" id="specificStaffContainer" style="display: none;">
+                                <label class="form-label">Select Peer:</label>
+                                <select class="form-select" id="specificStaffSelect">
+                                    <option value="">Choose peer...</option>
+                                    <?php foreach ($staff_list as $staff): ?>
+                                        <option value="<?= $staff['staff_id'] ?>"><?= htmlspecialchars($staff['name']) ?> (<?= htmlspecialchars($staff['staff_code']) ?>)</option>
+                                    <?php endforeach; ?>
                                 </select>
                             </div>
                             <div class="col-md-2">
@@ -293,6 +303,16 @@ $current_year = date('Y');
     <script>
         let radarChart = null;
         
+        // Toggle specific staff select
+        function toggleSpecificStaffSelect() {
+            const compareWith = $('#compareWithSelect').val();
+            if (compareWith === 'specific') {
+                $('#specificStaffContainer').show();
+            } else {
+                $('#specificStaffContainer').hide();
+            }
+        }
+        
         // Simple loading functions
         function showLoading() {
             $('#loadingOverlay').show();
@@ -317,19 +337,39 @@ $current_year = date('Y');
                 return;
             }
             
+            if (compareWith === 'specific') {
+                const peerId = $('#specificStaffSelect').val();
+                if (!peerId) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Missing Information',
+                        text: 'Please select a peer to compare with'
+                    });
+                    return;
+                }
+            }
+            
             showLoading();
+            
+            const requestData = {
+                action: 'get_peer_comparison',
+                staff_id: staffId,
+                year: year
+            };
+            
+            if (compareWith === 'specific') {
+                requestData.compare_with = 'manual';
+                requestData.manual_peer_id = $('#specificStaffSelect').val();
+            } else {
+                requestData.compare_with = compareWith;
+            }
             
             // Simple AJAX call with timeout
             $.ajax({
                 url: '../api/innovative_features_api.php',
                 method: 'GET',
                 timeout: 15000, // 15 second timeout
-                data: {
-                    action: 'get_peer_comparison',
-                    staff_id: staffId,
-                    compare_with: compareWith,
-                    year: year
-                },
+                data: requestData,
                 dataType: 'json',
                 success: function(response) {
                     hideLoading();
@@ -554,10 +594,10 @@ $current_year = date('Y');
                         <div class="row align-items-center">
                             <div class="col-md-7">
                                 <div class="d-flex align-items-center">
-                                    <div class="staff-avatar me-3" style="width: 50px; height: 50px; font-size: 1.2rem;">
+                                    <div class="staff-avatar me-3" style="width: 50px; height: 50px; font-size: 1.2rem; margin: 0; flex-shrink: 0;">
                                         ${peer.name.charAt(0)}
                                     </div>
-                                    <div>
+                                    <div style="text-align: left;">
                                         <strong style="font-size: 1.1rem;">${peer.name}</strong>
                                         <span class="text-muted ms-2">(${peer.staff_code})</span>
                                         <br>

@@ -34,6 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['supervisor_name'] = $supervisor['full_name'];
                 $_SESSION['supervisor_email'] = $supervisor['email'];
                 $_SESSION['supervisor_username'] = $supervisor['username'];
+                $_SESSION['login_time'] = date('Y-m-d H:i:s'); // Store login time
                 
                 // Update last login
                 $updateStmt = $pdo->prepare("UPDATE supervisors SET last_login = NOW() WHERE supervisor_id = ?");
@@ -173,7 +174,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <strong><i class="bi bi-info-circle me-2"></i>Demo Credentials:</strong>
                     <div class="mt-2">
                         <div><strong>Username:</strong> admin</div>
-                        <div><strong>Password:</strong> password123</div>
+                        <div><strong>Password:</strong> admin123</div>
                     </div>
                 </div>
             </div>
