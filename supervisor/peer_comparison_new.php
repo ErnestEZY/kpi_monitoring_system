@@ -603,14 +603,14 @@ $current_year = date('Y');
                                         <br>
                                         <small class="text-muted">
                                             <i class="bi bi-building"></i> ${peer.department} | 
-                                            <i class="bi bi-graph-up"></i> Score: ${peer.score}
+                                            <i class="bi bi-graph-up"></i> Score: ${peer.score}%
                                         </small>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-md-3 text-center">
                                 <span class="badge bg-primary similarity-badge">
-                                    <i class="bi bi-percent"></i> ${peer.similarity}% Match
+                                    ${peer.similarity}% Match
                                 </span>
                             </div>
                             <div class="col-md-2 text-end">

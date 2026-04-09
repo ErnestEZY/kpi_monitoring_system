@@ -988,6 +988,9 @@ function getStaffData($pdo, $staff_id, $year) {
         return null;
     }
     
+    // Convert weighted_score sum (0–1) to percentage (0–100)
+    $staff['score'] = round((float)$staff['score'] * 100, 2);
+    
     // Get KPI breakdown by group
     $stmt = $pdo->prepare("
         SELECT 
@@ -1217,7 +1220,8 @@ function findSimilarPeers($pdo, $staff_id, $year) {
     
     foreach ($peers as &$peer) {
         $peer['similarity'] = rand(70, 95);
-        $peer['score'] = number_format($peer['score'], 2);
+        // Convert weighted_score sum (0–1) to percentage (0–100)
+        $peer['score'] = round((float)$peer['score'] * 100, 1);
     }
     
     return $peers;
