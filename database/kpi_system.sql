@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 07, 2026 at 02:07 PM
+-- Generation Time: Apr 09, 2026 at 02:35 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -884,7 +884,7 @@ INSERT INTO `staff` (`staff_id`, `staff_code`, `name`, `email`, `department`, `p
 (3, 'SA003', 'Carol Martinez', 'carol.m@store.com', 'Home Goods', 'Sales Assistant', 'Active', '2021-03-10', 'Carol_Martinez.jpg', '2021-03-10 03:15:00'),
 (4, 'SA004', 'David Lee', 'david.l@store.com', 'Electronics', 'Sales Assistant', 'Active', '2020-09-05', 'David_Lee.jpg', '2020-09-05 06:20:00'),
 (5, 'SA005', 'Emma Wilson', 'emma.w@store.com', 'Fashion', 'Sales Assistant', 'Active', '2022-01-12', 'Emma_Wilson.jpg', '2022-01-12 00:45:00'),
-(6, 'SA006', 'Frankie Chong', 'frankie.c@store.com', 'Electronics', 'Sales Assistant', 'Active', '2021-07-18', 'Frankie_Chong.jpg', '2021-07-18 07:30:00'),
+(6, 'SA006', 'Frankie Chong', 'frankie.c@store.com', 'Electronics', 'Sales Assistant', 'Active', '2021-07-18', 'Frankie_Chong.jpeg', '2021-07-18 07:30:00'),
 (7, 'SA007', 'Grace Taylor', 'grace.t@store.com', 'Home Goods', 'Sales Assistant', 'Active', '2020-11-22', 'Grace_Taylor.jpg', '2020-11-22 02:00:00'),
 (8, 'SA008', 'Henry Brown', 'henry.b@store.com', 'Fashion', 'Sales Assistant', 'Active', '2019-04-15', 'Henry_Brown.jpg', '2019-04-15 05:20:00'),
 (9, 'SA009', 'Iris Wang', 'iris.w@store.com', 'Electronics', 'Sales Assistant', 'Active', '2021-09-30', 'Iris_Wang.jpg', '2021-09-30 01:45:00'),
@@ -915,20 +915,29 @@ CREATE TABLE `staff_comments` (
 --
 
 INSERT INTO `staff_comments` (`comment_id`, `staff_id`, `evaluation_year`, `supervisor_comment`, `training_recommendation`, `supervisor_id`, `created_at`, `updated_at`) VALUES
-(1, 1, 2022, 'Exceptional performance across all KPIs. Alice consistently exceeds targets and demonstrates strong leadership potential. Ready for advanced training.', NULL, 1, '2026-03-18 04:44:42', '2026-03-18 04:44:42'),
-(2, 2, 2022, 'Good sales performance but needs significant improvement in customer service skills. Recommend Customer Service Mastery training program.', NULL, 1, '2026-03-18 04:44:42', '2026-03-18 04:44:42'),
-(3, 3, 2022, 'Excellent customer service but struggling with sales targets. Needs focused sales training to improve conversion rates and target achievement.', NULL, 1, '2026-03-18 04:44:42', '2026-03-18 04:44:42'),
-(4, 4, 2022, 'Strong in sales and customer service but operational efficiency needs improvement. Recommend Operational Excellence training.', NULL, 2, '2026-03-18 04:44:42', '2026-03-18 04:44:42'),
-(5, 5, 2022, 'Inconsistent performance with punctuality issues affecting overall productivity. Time Management training would be beneficial.', NULL, 2, '2026-03-18 04:44:42', '2026-03-18 04:44:42'),
-(6, 6, 2022, 'Good all-around performer but lacks product knowledge depth. Advanced Product Knowledge training recommended.', NULL, 2, '2026-03-18 04:44:42', '2026-03-18 04:44:42'),
-(7, 7, 2022, 'Strong in customer service and operations but sales targets consistently missed. Sales Excellence Program needed.', NULL, 3, '2026-03-18 04:44:42', '2026-03-18 04:44:42'),
-(8, 8, 2022, 'Excellent in most areas but inventory management and cost control need attention. Operational Excellence training recommended.', NULL, 3, '2026-03-18 04:44:42', '2026-03-18 04:44:42'),
-(9, 9, 2022, 'Average performer across all categories. Needs comprehensive skill development in multiple areas.', NULL, 3, '2026-03-18 04:44:42', '2026-03-18 04:44:42'),
-(10, 10, 2022, 'Outstanding performer with consistent high scores. Demonstrates leadership qualities. Ready for Leadership Fundamentals program.', NULL, 1, '2026-03-18 04:44:42', '2026-03-18 04:44:42'),
-(11, 11, 2022, 'Good sales performance but customer service skills need development. Customer Service Mastery training recommended.', NULL, 2, '2026-03-18 04:44:42', '2026-03-18 04:44:42'),
-(12, 12, 2022, 'Decent sales but poor operational support and time management. Needs Time Management and Operational Excellence training.', NULL, 2, '2026-03-18 04:44:42', '2026-03-18 04:44:42'),
-(13, 13, 2022, 'Well-balanced performer with minor gaps. Continued development in all areas will lead to excellence.', NULL, 3, '2026-03-18 04:44:42', '2026-03-18 04:44:42'),
-(14, 2, 2025, 'Good customer interaction skills but needs improvement in handling difficult situations.', 'Customer service excellence training with focus on conflict resolution.', 1, '2026-03-18 05:19:00', '2026-03-18 05:19:00');
+(1, 1, 2022, 'Exceptional performance across all KPIs. Alice consistently exceeds targets and demonstrates strong leadership potential. Ready for advanced training.', 'Enrol in Leadership Fundamentals program. Mentor junior staff and take on team lead responsibilities.', 1, '2026-03-18 04:44:42', '2026-04-09 00:33:52'),
+(2, 2, 2022, 'Good sales performance but needs significant improvement in customer service skills. Recommend Customer Service Mastery training program.', 'Customer Service Mastery program (3 weeks). Focus on complaint resolution and service recovery techniques.', 1, '2026-03-18 04:44:42', '2026-04-09 00:33:52'),
+(3, 3, 2022, 'Excellent customer service but struggling with sales targets. Needs focused sales training to improve conversion rates and target achievement.', 'Sales Excellence Program (4 weeks). Emphasis on sales target achievement and upselling strategies.', 1, '2026-03-18 04:44:42', '2026-04-09 00:33:52'),
+(4, 4, 2022, 'Strong in sales and customer service but operational efficiency needs improvement. Recommend Operational Excellence training.', 'Operational Excellence training (2 weeks). Focus on cost control, inventory accuracy, and process improvement.', 2, '2026-03-18 04:44:42', '2026-04-09 00:33:52'),
+(5, 5, 2022, 'Inconsistent performance with punctuality issues affecting overall productivity. Time Management training would be beneficial.', 'Time Management & Productivity workshop (2 weeks). Address punctuality and task prioritisation skills.', 2, '2026-03-18 04:44:42', '2026-04-09 00:33:52'),
+(6, 6, 2022, 'Good all-around performer but lacks product knowledge depth. Advanced Product Knowledge training recommended.', 'Advanced Product Knowledge training (3 weeks). Deep-dive into product features and technical specifications.', 2, '2026-03-18 04:44:42', '2026-04-09 00:33:52'),
+(7, 7, 2022, 'Strong in customer service and operations but sales targets consistently missed. Sales Excellence Program needed.', 'Sales Excellence Program (4 weeks). Targeted coaching on closing techniques and sales target achievement.', 3, '2026-03-18 04:44:42', '2026-04-09 00:33:52'),
+(8, 8, 2022, 'Excellent in most areas but inventory management and cost control need attention. Operational Excellence training recommended.', 'Operational Excellence training (2 weeks). Inventory management and cost control modules required.', 3, '2026-03-18 04:44:42', '2026-04-09 00:33:52'),
+(9, 9, 2022, 'Average performer across all categories. Needs comprehensive skill development in multiple areas.', 'Comprehensive development plan: Sales Excellence + Customer Service Mastery programs back-to-back.', 3, '2026-03-18 04:44:42', '2026-04-09 00:33:52'),
+(10, 10, 2022, 'Outstanding performer with consistent high scores. Demonstrates leadership qualities. Ready for Leadership Fundamentals program.', 'Leadership Fundamentals program (6 weeks). Candidate for senior sales assistant or team lead role.', 1, '2026-03-18 04:44:42', '2026-04-09 00:33:52'),
+(11, 11, 2022, 'Good sales performance but customer service skills need development. Customer Service Mastery training recommended.', 'Customer Service Mastery program (3 weeks). Strengthen complaint handling and customer retention skills.', 2, '2026-03-18 04:44:42', '2026-04-09 00:33:52'),
+(12, 12, 2022, 'Decent sales but poor operational support and time management. Needs Time Management and Operational Excellence training.', 'Time Management & Productivity (2 weeks) followed by Operational Excellence (2 weeks).', 2, '2026-03-18 04:44:42', '2026-04-09 00:33:52'),
+(13, 13, 2022, 'Well-balanced performer with minor gaps. Continued development in all areas will lead to excellence.', 'Continue current development path. Advanced Product Knowledge training recommended as next step.', 3, '2026-03-18 04:44:42', '2026-04-09 00:33:52'),
+(14, 2, 2025, 'Good customer interaction skills but needs improvement in handling difficult situations.', 'Customer service excellence training with focus on conflict resolution.', 1, '2026-03-18 05:19:00', '2026-03-18 05:19:00'),
+(15, 3, 2024, 'Carol has shown improvement in customer service but sales targets remain a challenge.', 'Sales Excellence Program (4 weeks) with additional one-on-one coaching sessions.', 1, '2026-04-09 00:33:52', '2026-04-09 00:33:52'),
+(16, 5, 2024, 'Emma continues to struggle with consistency. Punctuality has improved slightly.', 'Time Management & Productivity workshop. Set monthly performance targets with weekly check-ins.', 2, '2026-04-09 00:33:52', '2026-04-09 00:33:52'),
+(17, 7, 2024, 'Grace excels in operations and customer service but sales conversion rate is still below target.', 'Sales Excellence Program focusing on closing techniques and product attachment strategies.', 1, '2026-04-09 00:33:52', '2026-04-09 00:33:52'),
+(18, 9, 2024, 'Iris shows steady but slow improvement. Needs structured support across multiple areas.', 'Customer Service Mastery followed by Advanced Product Knowledge training.', 3, '2026-04-09 00:33:52', '2026-04-09 00:33:52'),
+(19, 12, 2024, 'Leo has improved in sales but operational support remains weak.', 'Operational Excellence training (2 weeks). Focus on inventory accuracy and safety compliance.', 2, '2026-04-09 00:33:52', '2026-04-09 00:33:52'),
+(20, 4, 2025, 'David has made good progress in operational areas but cost control still needs attention.', 'Advanced Operational Excellence module with focus on cost reduction strategies.', 2, '2026-04-09 00:33:52', '2026-04-09 00:33:52'),
+(21, 6, 2025, 'Frankie demonstrates strong product knowledge but team collaboration scores have dipped.', 'Team collaboration workshop and peer mentoring program recommended.', 2, '2026-04-09 00:33:52', '2026-04-09 00:33:52'),
+(22, 8, 2025, 'Henry is performing well overall. Minor gaps in inventory management identified.', 'Inventory Management refresher course (1 week). No urgent intervention needed.', 3, '2026-04-09 00:33:52', '2026-04-09 00:33:52'),
+(23, 11, 2025, 'Karen has shown consistent improvement. Customer service scores are now above average.', 'Leadership Fundamentals introductory module to prepare for potential team lead role.', 1, '2026-04-09 00:33:52', '2026-04-09 00:33:52');
 
 -- --------------------------------------------------------
 
@@ -953,7 +962,7 @@ CREATE TABLE `supervisors` (
 --
 
 INSERT INTO `supervisors` (`supervisor_id`, `username`, `password`, `full_name`, `email`, `status`, `last_login`, `created_at`, `updated_at`) VALUES
-(1, 'admin', 'admin123', 'John Anderson', 'john.anderson@store.com', 'Active', '2026-04-06 23:35:07', '2024-01-15 01:00:00', '2026-04-06 23:35:07'),
+(1, 'admin', 'admin123', 'John Anderson', 'john.anderson@store.com', 'Active', '2026-04-09 00:24:36', '2024-01-15 01:00:00', '2026-04-09 00:24:36'),
 (2, 'manager1', 'pass123', 'Sarah Williams', 'sarah.w@store.com', 'Active', NULL, '2024-03-20 03:30:00', '2026-03-18 04:44:41'),
 (3, 'super1', 'super123', 'Michael Chen', 'michael.c@store.com', 'Active', NULL, '2024-06-10 05:45:00', '2026-03-18 04:44:41');
 
@@ -1036,7 +1045,7 @@ ALTER TABLE `staff`
 -- AUTO_INCREMENT for table `staff_comments`
 --
 ALTER TABLE `staff_comments`
-  MODIFY `comment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `comment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
 
 --
 -- AUTO_INCREMENT for table `supervisors`

@@ -40,7 +40,7 @@ switch ($report_type) {
         
         // Get all staff with comments
         $sql = "SELECT s.staff_id, s.name as full_name, s.staff_code as staff_number, s.department as department_name,
-                sc.training_recommendation, sc.evaluation_year
+                sc.supervisor_comment, sc.training_recommendation, sc.evaluation_year
                 FROM staff s
                 LEFT JOIN staff_comments sc ON s.staff_id = sc.staff_id
                 WHERE sc.evaluation_year = ?
@@ -279,7 +279,14 @@ switch ($report_type) {
                                                     <td><?= htmlspecialchars($staff['staff_number']) ?></td>
                                                     <td><strong><?= htmlspecialchars($staff['full_name']) ?></strong></td>
                                                     <td><?= htmlspecialchars($staff['department_name']) ?></td>
-                                                    <td><?= htmlspecialchars($staff['training_recommendation']) ?></td>
+                                                    <td>
+                                                        <?php
+                                                        $rec = $staff['training_recommendation'] ?: $staff['supervisor_comment'];
+                                                        echo $rec
+                                                            ? htmlspecialchars($rec)
+                                                            : '<span class="text-muted fst-italic">No recommendation recorded</span>';
+                                                        ?>
+                                                    </td>
                                                 </tr>
                                             <?php endforeach; ?>
                                         </tbody>
@@ -287,31 +294,64 @@ switch ($report_type) {
                                 </div>
                                 
                                 <?php
-                                // Analyze training needs
+                                // Extract program keywords from both fields to find most common training needs
+                                $program_keywords = [
+                                    'Sales Excellence'          => 'Sales Excellence Program',
+                                    'Customer Service Mastery'  => 'Customer Service Mastery',
+                                    'Leadership Fundamentals'   => 'Leadership Fundamentals',
+                                    'Operational Excellence'    => 'Operational Excellence',
+                                    'Time Management'           => 'Time Management & Productivity',
+                                    'Product Knowledge'         => 'Advanced Product Knowledge',
+                                    'Inventory'                 => 'Inventory Management',
+                                    'Mentoring'                 => 'Mentoring / Peer Support',
+                                ];
+
                                 $training_counts = [];
                                 foreach ($report_data as $staff) {
-                                    $training = $staff['training_recommendation'];
-                                    if (!isset($training_counts[$training])) {
-                                        $training_counts[$training] = 0;
+                                    // Use training_recommendation first, fall back to supervisor_comment
+                                    $text = $staff['training_recommendation'] ?: $staff['supervisor_comment'] ?? '';
+                                    if (empty($text)) continue;
+
+                                    $matched = false;
+                                    foreach ($program_keywords as $keyword => $label) {
+                                        if (stripos($text, $keyword) !== false) {
+                                            $training_counts[$label] = ($training_counts[$label] ?? 0) + 1;
+                                            $matched = true;
+                                        }
                                     }
-                                    $training_counts[$training]++;
+                                    // If no keyword matched, bucket as "General Development"
+                                    if (!$matched) {
+                                        $training_counts['General Development'] = ($training_counts['General Development'] ?? 0) + 1;
+                                    }
                                 }
                                 arsort($training_counts);
                                 ?>
-                                
+
+                                <?php if (!empty($training_counts)): ?>
                                 <div class="mt-4">
-                                    <h6>Most Common Training Needs:</h6>
+                                    <h6 class="fw-bold mb-3">
+                                        <i class="bi bi-bar-chart-fill text-primary me-1"></i>
+                                        Most Common Training Needs:
+                                    </h6>
                                     <div class="list-group">
-                                        <?php foreach (array_slice($training_counts, 0, 5) as $training => $count): ?>
-                                            <div class="list-group-item">
-                                                <div class="d-flex w-100 justify-content-between">
-                                                    <p class="mb-0"><?= htmlspecialchars($training) ?></p>
-                                                    <span class="badge bg-primary"><?= $count ?> staff</span>
+                                        <?php
+                                        $total_staff = count($report_data);
+                                        foreach (array_slice($training_counts, 0, 6) as $label => $count):
+                                            $pct = $total_staff > 0 ? round(($count / $total_staff) * 100) : 0;
+                                        ?>
+                                            <div class="list-group-item px-3 py-2">
+                                                <div class="d-flex w-100 justify-content-between align-items-center mb-1">
+                                                    <span class="fw-semibold small"><?= htmlspecialchars($label) ?></span>
+                                                    <span class="badge bg-primary ms-2"><?= $count ?> staff</span>
+                                                </div>
+                                                <div class="progress" style="height:6px;">
+                                                    <div class="progress-bar" style="width:<?= $pct ?>%"></div>
                                                 </div>
                                             </div>
                                         <?php endforeach; ?>
                                     </div>
                                 </div>
+                                <?php endif; ?>
                             <?php endif; ?>
                         </div>
                     </div>
