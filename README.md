@@ -30,6 +30,8 @@ Start both **Apache** and **MySQL** in the XAMPP Control Panel.
 - Click **Import** → choose `database/kpi_system.sql` → click **Go**
 - This creates all tables, loads all 13 staff, 21 KPIs, and sample scores (2022–2026)
 
+> **Note:** The `database/kpi_system.sql` file is included in the `database/` folder of this repository. If you cloned from GitHub, it is already there.
+
 **5. (Optional) Add training recommendation sample data**
 - SQL tab → paste contents of `database/sample_training_recommendations.sql` → **Go**
 - Adds training recommendations for 2022 (all staff), 2024 (5 staff), 2025 (4 staff)
