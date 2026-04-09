@@ -118,7 +118,7 @@ foreach ($names as $name) {
                             <?php if (!empty($staff['photo'])): ?>
                             <div class="col-auto d-none d-md-block">
                                 <img src="../assets/photos/<?= htmlspecialchars($staff['photo']) ?>"
-                                     alt=""
+                                     alt="<?= htmlspecialchars($staff['full_name']) ?> — professional headshot"
                                      style="width:110px;height:110px;border-radius:12px;object-fit:cover;border:3px solid rgba(255,255,255,.5);box-shadow:0 4px 12px rgba(0,0,0,.2);">
                             </div>
                             <?php endif; ?>
@@ -152,7 +152,7 @@ foreach ($names as $name) {
                             </div>
                             <div class="card-body">
                                 <div style="height: 300px;">
-                                    <canvas id="trendChart"></canvas>
+                                    <canvas id="trendChart" role="img" aria-label="Performance trend line chart over multiple years"></canvas>
                                 </div>
                                 <div class="mt-3">
                                     <p class="text-muted mb-2"><strong>Trend Analysis:</strong></p>
@@ -190,7 +190,7 @@ foreach ($names as $name) {
                                 <div class="flex-grow-1 d-flex flex-column align-items-center justify-content-center">
                                     <div style="height: 200px; position: relative; display: flex; align-items: center; justify-content: center;">
                                         <div style="position: relative; width: 200px; height: 200px;">
-                                            <canvas id="gaugeChart"></canvas>
+                                            <canvas id="gaugeChart" role="img" aria-label="Current performance score gauge"></canvas>
                                             <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none;">
                                                 <h2 class="mb-0"><?= number_format($current_data['overall_score'], 1) ?>%</h2>
                                             </div>
@@ -237,7 +237,7 @@ foreach ($names as $name) {
                             </div>
                             <div class="card-body">
                                 <div style="height: 320px;">
-                                    <canvas id="categoryChart"></canvas>
+                                    <canvas id="categoryChart" role="img" aria-label="KPI category breakdown radar chart"></canvas>
                                 </div>
                                 <?php
                                 $sql_cat = "SELECT km.section, AVG(ks.score) as avg_score
@@ -401,7 +401,7 @@ foreach ($names as $name) {
                     <h5 class="modal-title">
                         <i class="bi bi-magic"></i> Smart Comment Assistant
                     </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <!-- Year Selection -->

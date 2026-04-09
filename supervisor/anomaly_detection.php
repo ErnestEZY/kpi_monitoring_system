@@ -169,7 +169,7 @@ $selected_staff = $_GET['staff_id'] ?? ($staff_list[0]['staff_id'] ?? null);
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-6">
-                                <select class="form-select" id="staffSelect" onchange="loadStaffData(this.value)">
+                                <select class="form-select" id="staffSelect" aria-label="Select staff member" onchange="loadStaffData(this.value)">
                                     <?php foreach ($staff_list as $staff): ?>
                                         <option value="<?= $staff['staff_id'] ?>" <?= $staff['staff_id'] == $selected_staff ? 'selected' : '' ?>>
                                             <?= htmlspecialchars($staff['staff_code']) ?> - <?= htmlspecialchars($staff['name']) ?> 
@@ -198,7 +198,7 @@ $selected_staff = $_GET['staff_id'] ?? ($staff_list[0]['staff_id'] ?? null);
                         </h6>
                     </div>
                     <div class="card-body">
-                        <canvas id="anomalyChart" height="80"></canvas>
+                        <canvas id="anomalyChart" height="80" role="img" aria-label="Anomaly detection line chart"></canvas>
                         
                         <div class="mt-3">
                             <strong>Legend:</strong>

@@ -489,7 +489,7 @@ $years = range(2026, 2021);
                                     <!-- Score Progress -->
                                     <div class="text-center mb-4">
                                         <div style="position: relative; display: inline-block;">
-                                            <canvas id="scoreChart" width="150" height="150"></canvas>
+                                            <canvas id="scoreChart" width="150" height="150" role="img" aria-label="Overall KPI score progress chart"></canvas>
                                             <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none;">
                                                 <h2 class="mb-0" id="totalScore">0.0</h2>
                                             </div>

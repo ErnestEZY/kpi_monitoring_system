@@ -160,7 +160,7 @@ foreach ($all_staff as $staff) {
                                         </div>
                                         <?php if (!empty($staff['photo'])): ?>
                                         <img src="../assets/photos/<?= htmlspecialchars($staff['photo']) ?>"
-                                             alt=""
+                                             alt="<?= htmlspecialchars($staff['full_name']) ?> — professional headshot"
                                              style="width:90px;height:90px;border-radius:8px;object-fit:cover;flex-shrink:0;border:1px solid #dee2e6;">
                                         <?php endif; ?>
                                     </div>

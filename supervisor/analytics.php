@@ -180,7 +180,7 @@ $current_year = date('Y');
                             </div>
                             <div class="card-body">
                                 <div class="chart-container">
-                                    <canvas id="distributionChart"></canvas>
+                                    <canvas id="distributionChart" role="img" aria-label="Performance distribution doughnut chart"></canvas>
                                 </div>
                                 <div class="mt-1 p-2 bg-light rounded">
                                     <p class="mb-0 small text-muted">
@@ -200,7 +200,7 @@ $current_year = date('Y');
                             </div>
                             <div class="card-body">
                                 <div class="chart-container">
-                                    <canvas id="departmentChart"></canvas>
+                                    <canvas id="departmentChart" role="img" aria-label="Department comparison bar chart"></canvas>
                                 </div>
                                 <div class="mt-1 p-2 bg-light rounded">
                                     <p class="mb-0 small text-muted">
@@ -224,7 +224,7 @@ $current_year = date('Y');
                             </div>
                             <div class="card-body">
                                 <div class="chart-container">
-                                    <canvas id="trendChart"></canvas>
+                                    <canvas id="trendChart" role="img" aria-label="Multi-year performance trend line chart"></canvas>
                                 </div>
                                 <div class="mt-1 p-2 bg-light rounded">
                                     <p class="mb-0 small text-muted">
@@ -244,7 +244,7 @@ $current_year = date('Y');
                             </div>
                             <div class="card-body">
                                 <div class="chart-container">
-                                    <canvas id="categoryChart"></canvas>
+                                    <canvas id="categoryChart" role="img" aria-label="KPI category averages radar chart"></canvas>
                                 </div>
                                 <div class="mt-1 p-2 bg-light rounded">
                                     <p class="mb-0 small text-muted">
@@ -268,7 +268,7 @@ $current_year = date('Y');
                             </div>
                             <div class="card-body">
                                 <div class="chart-container">
-                                    <canvas id="boxPlotChart"></canvas>
+                                    <canvas id="boxPlotChart" role="img" aria-label="Score distribution histogram"></canvas>
                                 </div>
                                 <div class="mt-1 p-2 bg-light rounded">
                                     <p class="mb-0 small text-muted">
@@ -292,13 +292,13 @@ $current_year = date('Y');
                                     <table class="table table-hover" id="staffTable">
                                         <thead>
                                             <tr>
-                                                <th>Staff ID</th>
-                                                <th>Name</th>
-                                                <th>Department</th>
-                                                <th>Overall Score</th>
-                                                <th>Classification</th>
-                                                <th>Trend</th>
-                                                <th>Action</th>
+                                                <th scope="col">Staff ID</th>
+                                                <th scope="col">Name</th>
+                                                <th scope="col">Department</th>
+                                                <th scope="col">Overall Score</th>
+                                                <th scope="col">Classification</th>
+                                                <th scope="col">Trend</th>
+                                                <th scope="col">Action</th>
                                             </tr>
                                         </thead>
                                         <tbody id="staffTableBody">

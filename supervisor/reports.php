@@ -110,12 +110,12 @@ switch ($report_type) {
                                     <table class="table table-hover" id="reportTable">
                                         <thead>
                                             <tr>
-                                                <th>Rank</th>
-                                                <th>Staff ID</th>
-                                                <th>Name</th>
-                                                <th>Department</th>
-                                                <th>Overall Score</th>
-                                                <th>Actions</th>
+                                                <th scope="col">Rank</th>
+                                                <th scope="col">Staff ID</th>
+                                                <th scope="col">Name</th>
+                                                <th scope="col">Department</th>
+                                                <th scope="col">Overall Score</th>
+                                                <th scope="col">Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -201,13 +201,13 @@ switch ($report_type) {
                                     <table class="table table-hover" id="reportTable">
                                         <thead>
                                             <tr>
-                                                <th>Priority</th>
-                                                <th>Staff ID</th>
-                                                <th>Name</th>
-                                                <th>Current Score</th>
-                                                <th>Risk Level</th>
-                                                <th>Reason</th>
-                                                <th>Actions</th>
+                                                <th scope="col">Priority</th>
+                                                <th scope="col">Staff ID</th>
+                                                <th scope="col">Name</th>
+                                                <th scope="col">Current Score</th>
+                                                <th scope="col">Risk Level</th>
+                                                <th scope="col">Reason</th>
+                                                <th scope="col">Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -267,10 +267,10 @@ switch ($report_type) {
                                     <table class="table table-hover" id="reportTable">
                                         <thead>
                                             <tr>
-                                                <th>Staff ID</th>
-                                                <th>Name</th>
-                                                <th>Department</th>
-                                                <th>Training Recommendation</th>
+                                                <th scope="col">Staff ID</th>
+                                                <th scope="col">Name</th>
+                                                <th scope="col">Department</th>
+                                                <th scope="col">Training Recommendation</th>
                                             </tr>
                                         </thead>
                                         <tbody>

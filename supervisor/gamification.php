@@ -262,14 +262,14 @@ usort($leaderboard, function($a, $b) {
                             <table class="table table-hover">
                                 <thead>
                                     <tr>
-                                        <th>Rank</th>
-                                        <th>Staff Member</th>
-                                        <th>Department</th>
-                                        <th>Level</th>
-                                        <th>Points</th>
-                                        <th>KPI Score</th>
-                                        <th>Badges</th>
-                                        <th>Progress</th>
+                                        <th scope="col">Rank</th>
+                                        <th scope="col">Staff Member</th>
+                                        <th scope="col">Department</th>
+                                        <th scope="col">Level</th>
+                                        <th scope="col">Points</th>
+                                        <th scope="col">KPI Score</th>
+                                        <th scope="col">Badges</th>
+                                        <th scope="col">Progress</th>
                                     </tr>
                                 </thead>
                                 <tbody>

@@ -94,7 +94,7 @@ $available_years = range(2026, 2021);
                     <h1 class="h2">Supervisor Dashboard</h1>
                     <div class="btn-toolbar mb-2 mb-md-0">
                         <div class="btn-group me-2">
-                            <select class="form-select" id="yearFilter" onchange="filterByYear(this.value)">
+                            <select class="form-select" id="yearFilter" aria-label="Filter by year" onchange="filterByYear(this.value)">
                                 <?php foreach ($available_years as $year): ?>
                                     <option value="<?= $year ?>" <?= $year == $selected_year ? 'selected' : '' ?>>
                                         <?= $year ?>
@@ -231,7 +231,7 @@ $available_years = range(2026, 2021);
                         <hr>
                         <a href="reports.php?type=at_risk" class="alert-link">View all <?= count($at_risk_staff) ?> at-risk staff →</a>
                     <?php endif; ?>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
                 <?php endif; ?>
 
@@ -311,7 +311,7 @@ $available_years = range(2026, 2021);
                             </div>
                             <div class="card-body">
                                 <div style="position: relative; height: 280px;">
-                                    <canvas id="distributionChart"></canvas>
+                                <canvas id="distributionChart" role="img" aria-label="Performance distribution doughnut chart"></canvas>
                                 </div>
                                 <div class="mt-3 p-3 bg-light rounded">
                                     <p class="mb-0 small text-muted">
@@ -384,12 +384,12 @@ $available_years = range(2026, 2021);
                             <table class="table table-hover" id="staffTable">
                                 <thead>
                                     <tr>
-                                        <th onclick="sortTable(0)">Staff ID <i class="bi bi-arrow-down-up"></i></th>
-                                        <th onclick="sortTable(1)">Name <i class="bi bi-arrow-down-up"></i></th>
-                                        <th onclick="sortTable(2)">Department <i class="bi bi-arrow-down-up"></i></th>
-                                        <th onclick="sortTable(3)">Score <i class="bi bi-arrow-down-up"></i></th>
-                                        <th onclick="sortTable(4)">Classification <i class="bi bi-arrow-down-up"></i></th>
-                                        <th>Actions</th>
+                                        <th scope="col" onclick="sortTable(0)">Staff ID <i class="bi bi-arrow-down-up"></i></th>
+                                        <th scope="col" onclick="sortTable(1)">Name <i class="bi bi-arrow-down-up"></i></th>
+                                        <th scope="col" onclick="sortTable(2)">Department <i class="bi bi-arrow-down-up"></i></th>
+                                        <th scope="col" onclick="sortTable(3)">Score <i class="bi bi-arrow-down-up"></i></th>
+                                        <th scope="col" onclick="sortTable(4)">Classification <i class="bi bi-arrow-down-up"></i></th>
+                                        <th scope="col">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>

@@ -474,7 +474,7 @@ $current_year = date('Y');
                         </div>
                         <div class="card-body">
                             <div class="radar-container">
-                                <canvas id="radarChart"></canvas>
+                                <canvas id="radarChart" role="img" aria-label="Peer comparison radar chart"></canvas>
                             </div>
                             <div class="text-center mt-3">
                                 <span class="badge bg-primary me-2"><i class="bi bi-circle-fill"></i> ${data.staff1.name}</span>
