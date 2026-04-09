@@ -24,11 +24,13 @@ decisions. This system replaces that with:
   - A structured 21-KPI scoring framework (1–5 scale, weighted)
   - Multi-year historical tracking (2022–2026)
   - Automatic performance classification and trend detection
-  - AI-powered predictions using TensorFlow.js (neural network)
+  - AI-powered predictions using TensorFlow.js (neural network in browser)
   - Smart training recommendations matched to individual skill gaps
   - Anomaly detection to flag unusual performance changes
   - Peer comparison to benchmark staff against similar colleagues
   - Gamification to motivate staff through points and badges
+  - Staff profile photos with professional headshot display
+  - Accessibility-compliant HTML (aria-labels, scope, alt text)
 
 The system is supervisor-only. There is no sales assistant login — supervisors
 enter scores on behalf of their team and view all analytics.
@@ -37,125 +39,82 @@ enter scores on behalf of their team and view all analytics.
   TECHNOLOGY STACK
 ================================================================================
 
-FRONTEND (what the user sees in the browser):
-  Bootstrap 5.3.0     — Responsive layout framework. Makes the UI look
-                        professional and work on different screen sizes
-                        without writing custom CSS for every element.
-  Chart.js 4.4.0      — JavaScript charting library. Used for doughnut,
-                        line, bar, and radar charts throughout the system.
-  jQuery 3.7.1        — Simplifies DOM manipulation and AJAX calls.
-                        Used in training recommendations and peer comparison.
-  Alpine.js 3.x       — Lightweight reactive framework. Used specifically
-                        for the Smart Comment Assistant modal on staff profiles.
-                        Allows two-way data binding without a full framework.
-  SweetAlert2 11.x    — Replaces the browser's default alert() with styled
-                        modals. Used for confirmations, loading states, toasts.
-  Bootstrap Icons     — Icon library. Used throughout for visual clarity.
-  TensorFlow.js 4.17  — Google's machine learning library ported to JavaScript.
-                        Runs a neural network INSIDE the browser — no server
-                        needed. Used exclusively for Predictive Alerts.
+FRONTEND:
+  Bootstrap 5.3.0     — Responsive layout framework
+  Chart.js 4.4.0      — Doughnut, line, bar, radar, histogram charts
+  jQuery 3.7.1        — DOM manipulation and AJAX calls
+  Alpine.js 3.x       — Reactive comment assistant modal (staff profile)
+  SweetAlert2 11.x    — Loading modals, confirmations, toast notifications
+  Bootstrap Icons     — Icon library used throughout
+  TensorFlow.js 4.17  — Neural network predictions (runs in browser, no server ML)
 
-BACKEND (server-side logic):
-  PHP 7.4+            — Server-side scripting language. Handles all database
-                        queries, business logic, and HTML generation.
-  PDO                 — PHP Data Objects. A database abstraction layer that
-                        supports prepared statements to prevent SQL injection.
-  MySQL / MariaDB     — Relational database. Stores all staff, KPI, and
-                        score data. MariaDB is the version bundled with XAMPP.
+BACKEND:
+  PHP 7.4+            — Server-side scripting
+  PDO                 — Prepared statements (SQL injection prevention)
+  MySQL / MariaDB     — Relational database (XAMPP bundled)
 
 ARCHITECTURE:
-  The system follows a 3-tier architecture:
-    1. Presentation Layer  — PHP/HTML pages in supervisor/
-    2. Business Logic      — KPICalculator.php class + API endpoints
-    3. Data Layer          — MySQL database accessed via PDO
+  3-tier: Presentation (supervisor/) → Business Logic (KPICalculator.php + api/)
+          → Data Layer (MySQL via PDO)
+  API endpoints return JSON, called by JavaScript fetch() / jQuery AJAX.
 
-  API endpoints (api/ folder) return JSON and are called by JavaScript
-  using the Fetch API or jQuery AJAX. This separates data from display
-  and allows charts to update without full page reloads.
-
-SECURITY MEASURES:
-  - PDO Prepared Statements  — User input is never directly placed into
-                               SQL strings. Parameters are bound separately,
-                               so SQL injection is not possible.
-  - htmlspecialchars()       — All user-supplied text is escaped before
-                               being output to HTML, preventing XSS attacks.
-  - Session Authentication   — Every protected page checks for a valid
-                               session before rendering. No page is accessible
-                               without logging in first.
-  - .htaccess Protection     — The config/ folder is blocked from direct
-                               browser access, protecting DB credentials.
+SECURITY:
+  - PDO Prepared Statements  — prevents SQL injection
+  - htmlspecialchars()       — prevents XSS on all output
+  - Session Authentication   — requireLogin() on every protected page
+  - requireLoginApi()        — returns HTTP 401 JSON for API endpoints
+  - .htaccess Protection     — blocks direct access to config/ folder
 
 ================================================================================
   DATABASE STRUCTURE (5 Tables, 3NF Normalised)
 ================================================================================
 
-Third Normal Form (3NF) means:
-  - No duplicate data (each piece of information stored once)
-  - Every column depends only on the primary key
-  - No transitive dependencies (A → B → C is split into separate tables)
-
 TABLE: supervisors
-  Stores supervisor login accounts.
-  Columns: supervisor_id (PK), username, password, full_name, email,
-           status, last_login, created_at, updated_at
-  Sample data: 3 supervisors (admin, manager1, manager2)
+  3 supervisor accounts: admin (John Anderson), manager1 (Sarah Williams),
+  super1 (Michael Chen)
+  Columns: supervisor_id, username, password, full_name, email, status,
+           last_login, created_at, updated_at
 
 TABLE: staff
-  Stores sales assistant profiles.
-  Columns: staff_id (PK), staff_code, name, email, department, position,
+  13 active sales assistants across Electronics, Fashion, Home Goods
+  Columns: staff_id, staff_code, name, email, department, position,
            status, hire_date, photo, created_at
-  Sample data: 13 active staff members across Electronics, Fashion,
-               Home Goods departments
-  NOTE: photo column stores just the filename (e.g. "Alice_Johnson.jpg")
-        not the full path — this is normalisation in practice.
+  photo column: stores filename only (e.g. "Alice_Johnson.jpg")
 
 TABLE: kpi_master
-  Stores the definition of all 21 KPIs. This is a lookup/reference table.
-  Columns: kpi_id (PK), kpi_code, section, kpi_group, kpi_description,
+  21 KPI definitions — reference/lookup table
+  Columns: kpi_id, kpi_code, section, kpi_group, kpi_description,
            weight_percentage, section_number, display_order, created_at
-  Why separate? If KPI descriptions or weights change, you update one row
-  here instead of thousands of score rows.
 
 TABLE: kpi_scores
-  Stores the actual scores entered by supervisors.
-  Columns: score_id (PK), staff_id (FK), kpi_code (FK), evaluation_date,
+  742 score rows across 2022–2026
+  Columns: score_id, staff_id (FK), kpi_code (FK), evaluation_date,
            evaluation_year, score (1–5), weighted_score, created_at, updated_at
-  Foreign Keys:
-    staff_id → staff(staff_id) ON DELETE CASCADE
-    kpi_code → kpi_master(kpi_code) ON DELETE RESTRICT
   Unique Key: (staff_id, kpi_code, evaluation_year)
-    This prevents duplicate scores for the same staff/KPI/year.
-    ON DUPLICATE KEY UPDATE means re-submitting updates instead of errors.
-  Sample data: 742 score rows across 2022–2026
+  ON DUPLICATE KEY UPDATE — re-submitting same year updates, never duplicates
 
 TABLE: staff_comments
-  Stores supervisor feedback and training recommendations per staff per year.
-  Columns: comment_id (PK), staff_id (FK), evaluation_year, supervisor_comment,
+  Supervisor feedback and training recommendations per staff per year
+  Columns: comment_id, staff_id (FK), evaluation_year, supervisor_comment,
            training_recommendation, supervisor_id (FK), created_at, updated_at
-  Unique Key: (staff_id, evaluation_year) — one comment set per year per staff
-  Sample data: 14 comment records
+  Unique Key: (staff_id, evaluation_year)
 
-FOREIGN KEY RELATIONSHIPS:
-  kpi_scores.staff_id      → staff.staff_id         (CASCADE delete)
-  kpi_scores.kpi_code      → kpi_master.kpi_code    (RESTRICT delete)
-  staff_comments.staff_id  → staff.staff_id         (CASCADE delete)
-  staff_comments.supervisor_id → supervisors.supervisor_id (SET NULL)
-
-  CASCADE: if a staff member is deleted, their scores are deleted too.
-  RESTRICT: you cannot delete a KPI that has scores attached to it.
-  SET NULL: if a supervisor is deleted, their comments remain but
-            supervisor_id becomes NULL (comments are preserved).
+FOREIGN KEY RULES:
+  kpi_scores → staff          CASCADE (delete staff → delete their scores)
+  kpi_scores → kpi_master     RESTRICT (cannot delete KPI with scores)
+  staff_comments → staff      CASCADE
+  staff_comments → supervisors SET NULL (delete supervisor → comments kept)
 
 ================================================================================
   KPI FRAMEWORK (21 KPIs across 2 Sections)
 ================================================================================
 
-SECTION 1 — Core Competencies (total weight: 10%)
+SECTION 1 — Core Competencies (10%)
   CC1  Verbal Communication Skills      3.33%
   CC2  Written Communication Skills     3.33%
   CC3  Team Collaboration               3.34%
 
-SECTION 2 — KPI Achievement (total weight: 90%)
+SECTION 2 — KPI Achievement (90%)
   Daily Sales Operations (20%)
     KPI1  Sales Target Achievement      5.00%
     KPI2  Customer Service Quality      5.00%
@@ -186,106 +145,90 @@ SECTION 2 — KPI Achievement (total weight: 90%)
 
   TOTAL: 100.00%
 
-SCORING SCALE:
-  5 = Excellent    (Outstanding performance)
-  4 = Good         (Above average)
-  3 = Satisfactory (Meets expectations)
-  2 = Poor         (Below average)
-  1 = Very Poor    (Unsatisfactory)
+SCORING: 1=Very Poor, 2=Poor, 3=Satisfactory, 4=Good, 5=Excellent
 
-CALCULATION FORMULA:
+FORMULA:
   weighted_score  = (score / 5) × (weight_percentage / 100)
   overall_score % = SUM(all 21 weighted_scores) × 100
 
-  Example: KPI1 score=4, weight=5%
-    weighted_score = (4/5) × (5/100) = 0.04
-    If all 21 KPIs scored 4.0: overall = 0.80 × 100 = 80%
-
-PERFORMANCE CLASSIFICATION:
-  ≥ 85%  →  Top Performer
-  ≥ 75%  →  Good Performer
-  ≥ 65%  →  Satisfactory
-  ≥ 50%  →  Needs Improvement
-  < 50%  →  Critical
+CLASSIFICATION:
+  ≥ 85%  Top Performer
+  ≥ 75%  Good Performer
+  ≥ 65%  Satisfactory
+  ≥ 50%  Needs Improvement
+  < 50%  Critical
 
 ================================================================================
   STANDARD FEATURES
 ================================================================================
 
 1. AUTHENTICATION & SESSION MANAGEMENT
-   File: auth/login.php, auth/logout.php, includes/auth.php
-   - Supervisor logs in with username and password
-   - PHP session stores supervisor_id, name, email, login_time
-   - Every protected page calls requireLogin() which checks the session
-   - Login timestamp displayed in the navbar (centred)
-   - Logout destroys the session and cookie completely
+   - Login with username/password, session stores supervisor_id + login_time
+   - Login timestamp displayed centred in the navbar
+   - requireLogin() protects every page; requireLoginApi() protects all APIs
+   - Logout destroys session, clears cookie, redirects to login
 
-2. SUPERVISOR DASHBOARD
-   File: supervisor/dashboard.php
-   - 4 summary cards: Total Staff, Top Performers, At-Risk, Average Score
-   - Each card is clickable with hover animation and tooltip description
+2. SUPERVISOR DASHBOARD (supervisor/dashboard.php)
+   - 4 clickable summary cards: Total Staff, Top Performers, At-Risk, Avg Score
+   - Hover tooltips on each card explaining what it shows
    - Attention Required alert for at-risk staff (dismissible)
    - Gamified level distribution: Platinum/Gold/Silver/Bronze/Developing
    - Performance Distribution doughnut chart with selected year in centre
    - Top Performers & At-Risk Staff side-by-side list
-   - Full staff performance table with sort and search
-   - Year filter (2021–2026)
+   - Full staff table with sort and search
+   - Year filter: 2021–2026
 
-3. KPI SCORE ENTRY
-   File: supervisor/kpi_entry.php
-   - Select staff member and evaluation year
-   - 21 KPIs organised in collapsible sections (reduces scrolling)
-   - Visual 1–5 score buttons (colour-coded: red→green)
-   - Real-time sidebar: live score calculation, doughnut chart,
-     progress bar, classification badge
-   - Saves via AJAX — no page reload
-   - Shows server-confirmed overall score after saving
+3. KPI SCORE ENTRY (supervisor/kpi_entry.php)
+   - Select staff + year, then enter scores for all 21 KPIs
+   - Collapsible sections: Core Competencies + 5 KPI Achievement categories
+   - Visual 1–5 score buttons (colour-coded red→green)
+   - Real-time sidebar: live score, doughnut chart, progress bar, classification
+   - Saves via AJAX with transaction — server returns confirmed overall score
+   - SweetAlert success dialog with "View Profile" or "Stay on Page" option
 
-4. STAFF LIST
-   File: supervisor/staff_list.php
-   - Card grid showing all staff
-   - Each card: initials avatar (left), photo (right), name, department,
-     hire date, status, performance score, progress bar, trend badge
+4. STAFF LIST (supervisor/staff_list.php)
+   - Card grid: initials avatar (left) + professional headshot photo (right)
    - Filters: Year, Department, Performance Level, Staff Member dropdown
-   - Click "View Full Profile" to go to individual profile
+   - Each card shows score, progress bar, classification badge, trend badge
+   - Photo alt text: "Name — professional headshot"
 
-5. STAFF PROFILE
-   File: supervisor/staff_profile.php
-   - Profile header: initials avatar + photo on right side
-   - Performance Story: auto-generated narrative
-   - Performance Trend Chart (line chart, all years)
-   - Current Score Gauge (doughnut chart)
-   - KPI Category Breakdown (radar chart)
+5. STAFF PROFILE (supervisor/staff_profile.php)
+   - Header: initials avatar (left) + photo on right side of banner
+   - Performance Story (auto-generated narrative)
+   - Performance Trend Chart (line, all years)
+   - Current Score Gauge (doughnut)
+   - KPI Category Breakdown (radar)
    - Strengths & Weaknesses (progress bars)
-   - Supervisor Comments section (read-only display)
-   - "Add/Edit Comment" button opens modal with Smart Comment Assistant
-   - Comment modal: year selector, quick templates, save via AJAX
+   - Supervisor Comments displayed; "Add/Edit Comment" opens Alpine.js modal
+   - Modal: year selector, 4 quick templates, save via AJAX, reloads on save
+   - Auto-opens modal if URL has ?openComment=true (from training needs page)
 
-6. INTERACTIVE ANALYTICS
-   File: supervisor/analytics.php, assets/js/analytics.js
+6. INTERACTIVE ANALYTICS (supervisor/analytics.php)
    - Filters: Year, Department, Performance Level
-   - 5 charts, all loaded via parallel AJAX calls:
-     * Performance Distribution (doughnut with year centre)
-     * Department Comparison (bar chart)
-     * Multi-Year Trend (line chart — min/avg/max)
-     * KPI Category Averages (radar chart)
-     * Score Distribution (histogram)
+   - 5 charts loaded in parallel (Promise.allSettled):
+     * Performance Distribution doughnut (year in centre)
+     * Department Comparison bar chart
+     * Multi-Year Trend line chart (min/avg/max, parallel year fetches)
+     * KPI Category Averages radar chart
+     * Score Distribution histogram
    - Each chart has a data-driven storytelling insight below it
-   - Staff table with trend indicators
+   - Average Score card has info tooltip explaining the formula
+   - Staff table with trend indicators and View links
 
-7. PERFORMANCE REPORTS
-   File: supervisor/reports.php
-   - Top Performers report (score ≥ 85%)
-   - At-Risk Staff report (year-specific, uses fixed year filter)
-   - Training Needs report (staff with supervisor recommendations)
-   - Print button on each report
+7. PERFORMANCE REPORTS (supervisor/reports.php)
+   - Top Performers: staff with score ≥ 85% for selected year
+   - At-Risk Staff: year-specific (fixed bug — uses selected year directly)
+   - Training Needs: shows training_recommendation; falls back to
+     supervisor_comment if NULL; "No recommendation recorded" if both empty
+   - Most Common Training Needs: keyword-based analysis across 8 program
+     categories with progress bars showing proportion
+   - Export to CSV button on each report
 
 8. SUPERVISOR COMMENTS & TRAINING RECOMMENDATIONS
-   File: supervisor/training_recommendations.php
-   - AI-generated training recommendations per staff
-   - Shows skill gaps, match score, program details, expected outcomes
+   (supervisor/training_recommendations.php)
+   - AI-generated recommendations with skill gap badges and match scores
    - Priority levels: High / Medium / Low
-   - "Edit Comment" button → redirects to staff profile with modal open
+   - "Edit Comment" → redirects to staff_profile.php?openComment=true
    - Filters: Priority, Skill Gap severity, Department
 
 ================================================================================
@@ -294,189 +237,143 @@ PERFORMANCE CLASSIFICATION:
 
 FEATURE 1: PREDICTIVE PERFORMANCE ALERTS (TensorFlow.js)
   File: supervisor/predictive_alerts_new.php
-  API:  api/innovative_features_api.php → get_all_trends
 
-  WHAT IT DOES:
-    Predicts each staff member's performance for the next year using
-    a neural network trained on their historical KPI scores.
+  Uses TensorFlow.js v4.17.0 — runs entirely in the browser.
+  No Python, no server-side ML required.
 
-  HOW IT WORKS (TensorFlow.js in the browser):
-    1. Fetches all staff yearly scores from the PHP API
-    2. For each staff member with ≥3 years of data:
-       a. Normalises year indices to [0,1] and scores to [0,1]
-       b. Builds a Sequential Dense Neural Network:
-          Input → Dense(8, ReLU) → Dense(4, ReLU) → Dense(1, Linear)
-       c. Trains for 200 epochs using Adam optimiser, MSE loss
-       d. Predicts next year's score
-       e. Calculates confidence from MAE (Mean Absolute Error)
-    3. Classifies risk based on predicted score:
-       < 50%  → Critical
-       < 65%  → High
-       < 75%  → Medium
-       ≥ 75%  → Low / Stable
+  Model: Sequential Dense Neural Network
+    Input → Dense(8, ReLU) → Dense(4, ReLU) → Dense(1, Linear)
+  Training: Adam optimiser, MSE loss, 200 epochs
+  Input: normalised year index [0,1], Output: predicted score [0,1]
+  Confidence: 100 − MAE on training data, clamped 50–99%
+  Minimum 3 years of data required per staff member
 
-  WHY NEURAL NETWORK OVER LINEAR REGRESSION?
-    Linear regression can only model straight-line trends.
-    A neural network with ReLU activation can model curves, plateaus,
-    and recoveries — more realistic for human performance data.
+  Risk classification (matches threshold bar on page):
+    < 50%  → Critical
+    < 65%  → High
+    < 75%  → Medium
+    ≥ 75%  → Low / Stable
 
-  DISPLAY:
-    - Threshold bar showing score ranges for each risk level
-    - 4 summary cards with counts and percentages
-    - Alert cards for Critical/High/Medium staff with recommendations
-    - Collapsed section for Low/Stable staff (click to expand)
-    - SweetAlert loading modal during training
-    - Success toast when complete
+  Display:
+    - Static threshold bar showing score ranges
+    - 4 summary cards with counts + percentage of staff
+    - Alert cards for Critical/High/Medium with recommendations
+    - Collapsed green section for Low/Stable staff (click to expand)
+    - SweetAlert loading modal during training + success toast when done
+    - "Re-run Predictions" button retrains all models fresh
 
 FEATURE 2: SMART TRAINING RECOMMENDATIONS
   File: supervisor/training_recommendations.php
   Class: KPICalculator::getSmartTrainingRecommendations()
 
-  WHAT IT DOES:
-    Automatically matches each underperforming staff member to the
-    most suitable training program based on their specific skill gaps.
+  Identifies skill gaps by category score thresholds:
+    < 50% → Critical gap (priority 3)
+    < 70% → Moderate gap (priority 2)
+    < 85% → Minor gap   (priority 1)
 
-  HOW IT WORKS:
-    1. Identifies skill gaps by category:
-       < 50% → Critical gap (priority 3)
-       < 70% → Moderate gap (priority 2)
-       < 85% → Minor gap   (priority 1)
-    2. Compares gaps against 6 training programs, each with focus areas
-    3. Calculates match score: higher score for lower performance in
-       the program's focus area (more need = better match)
-    4. Returns top 5 programs sorted by match score
+  Matches gaps to 6 training programs with compatibility scoring.
+  Returns top 5 programs sorted by match score.
 
-  6 TRAINING PROGRAMS:
-    1. Sales Excellence Program (4 weeks)
-    2. Customer Service Mastery (3 weeks)
-    3. Leadership Fundamentals (6 weeks, requires ≥85%)
-    4. Operational Excellence (2 weeks)
-    5. Time Management & Productivity (2 weeks)
-    6. Advanced Product Knowledge (3 weeks)
+  Programs: Sales Excellence, Customer Service Mastery, Leadership
+  Fundamentals, Operational Excellence, Time Management & Productivity,
+  Advanced Product Knowledge
 
 FEATURE 3: ANOMALY DETECTION + AUTO-NARRATIVE INSIGHTS
   File: supervisor/anomaly_detection.php
-  API:  api/innovative_features_api.php → detect_anomalies
 
-  WHAT IT DOES:
-    Scans a staff member's performance history for unusual patterns
-    and generates plain-English explanations of what happened.
-
-  ANOMALY TYPES DETECTED:
-    Spike    — score increased by ≥5% in one year
-    Drop     — score decreased by ≥5% in one year
-    Decline  — score decreased for 3+ consecutive years
-
-  AUTO-NARRATIVE:
-    For each anomaly, the system generates a sentence explaining
-    what happened and what it might mean for the supervisor.
-    Example: "Performance dropped from 78% to 65% in 2024.
-    Immediate attention and support recommended."
-
-  DISPLAY:
-    - Line chart with anomaly markers (Chart.js)
-    - Anomaly cards with type, year, description
-    - Narrative insights panel
+  Detects: Spike (≥5% increase), Drop (≥5% decrease),
+           Consecutive Decline (3+ years decreasing)
+  Generates plain-English narrative for each anomaly.
+  Line chart with anomaly markers (Chart.js).
 
 FEATURE 4: ADVANCED PEER COMPARISON
   File: supervisor/peer_comparison_new.php
-  API:  api/innovative_features_api.php → get_peer_comparison
 
-  WHAT IT DOES:
-    Compares a staff member's KPI performance against peers to
-    identify where they stand relative to similar colleagues.
+  Compare modes:
+    Auto-select Best Match — most similar peer by score
+    Top Performer          — compare against highest scorer
+    Team Average           — compare against team benchmark
+    Specific Staff Member  — supervisor picks exact peer (NEW)
 
-  COMPARISON MODES:
-    Auto-select Best Match  — finds the most similar peer by score
-    Top Performer           — compares against the highest scorer
-    Team Average            — compares against team benchmark
-    Specific Staff Member   — supervisor picks exact peer (NEW)
-
-  HOW SIMILARITY IS CALCULATED:
-    similarity = 100 - |staff_score - peer_score|
-    Peers within ±10% are considered "similar".
-
-  DISPLAY:
-    - Side-by-side staff cards with VS badge (animated pulse)
-    - Radar chart comparing KPI categories for both staff
-    - Similarity score percentage
-    - Insights panel highlighting key differences
-    - "Similar Peers" section for quick comparison switching
+  Similarity = 100 − |staff_score − peer_score|
+  Radar chart comparing KPI categories for both staff.
+  Animated VS badge between the two staff cards.
 
 ================================================================================
-  GAMIFICATION FEATURE
+  GAMIFICATION
 ================================================================================
 
-  File: supervisor/gamification.php
-  API:  api/innovative_features_api.php → get_gamification_data
-
-  POINTS SYSTEM:
-    Base points    = overall_score × 10
-    Top Performer  = +500 pts  (score ≥ 85%)
-    Rising Star    = +300 pts  (improving trend >5%)
-    Consistency    = +200 pts  (3+ years of good performance)
-    Perfect Score  = +100 pts  (any KPI scored 5)
-
-  LEVELS:
-    Bronze    < 500 pts
-    Silver    500–999 pts
-    Gold      1000–1499 pts
-    Platinum  1500–1999 pts
-    Diamond   ≥ 2000 pts
-
-  DISPLAY:
-    - Top 3 podium (🥇🥈🥉) with animated counters
-    - Full leaderboard table
-    - Badge showcase
+  Points: score×10 + 500 (Top Performer) + 300 (Rising Star)
+          + 200 (Consistency) + 100 (Perfect Score)
+  Levels: Bronze / Silver / Gold / Platinum / Diamond
+  Display: Top 3 podium (🥇🥈🥉), full leaderboard, badge showcase
 
 ================================================================================
-  SAMPLE DATA IN DATABASE
+  SAMPLE DATA
 ================================================================================
 
-  Supervisors  : 3 (admin, manager1, manager2)
+  Supervisors  : 3 (admin, manager1, super1)
   Staff        : 13 active sales assistants
   Departments  : Electronics, Fashion, Home Goods
   Years        : 2022, 2023, 2024, 2025, 2026
   KPI Scores   : 742 rows
-  Comments     : 14 supervisor comment records
   Photos       : 13 staff photos in assets/photos/
+                 (12 × .jpg, 1 × .jpeg — Frankie Chong)
 
-  NOTABLE STAFF (for demo purposes):
+  NOTABLE STAFF (for demo):
     Alice Johnson (SA001)  — Top Performer, ~92% in 2025–2026
     Jack Miller   (SA010)  — Top Performer, ~92% in 2025–2026
     Emma Wilson   (SA005)  — At-Risk, ~52% in 2025–2026
     Iris Wang     (SA009)  — At-Risk, ~52% in 2025–2026
 
 ================================================================================
-  INSTALLATION (XAMPP)
+  ACCESSIBILITY
 ================================================================================
 
-  1. Extract project zip to: C:\xampp\htdocs\kpi_system\
-  2. Start Apache and MySQL in XAMPP Control Panel
-  3. Open: http://localhost/phpmyadmin
-  4. Create database named: kpi_system
-  5. Import: database/kpi_system.sql  (everything in one file)
+  All pages comply with the following:
+  - lang="en" on every <html> element
+  - scope="col" on all <th> table headers
+  - role="img" + aria-label on all <canvas> chart elements
+  - aria-label="Close" on all icon-only close buttons
+  - Descriptive alt text: "Name — professional headshot" on staff photos
+  - aria-label on standalone <select> elements without visible labels
+  - All form inputs have associated <label> elements
+
+================================================================================
+  INSTALLATION
+================================================================================
+
+  1. Extract to: C:\xampp\htdocs\kpi_system\
+  2. Start Apache + MySQL in XAMPP Control Panel
+  3. phpMyAdmin → Create database: kpi_system
+  4. Import: database/kpi_system.sql  (everything in one file)
+  5. Optional: run database/sample_training_recommendations.sql
   6. Open: http://localhost/kpi_system/
   7. Login: admin / admin123
-
-  That's it — one SQL file imports everything.
 
 ================================================================================
   RUNNING TESTS
 ================================================================================
 
-  Open in browser: http://localhost/kpi_system/tests/test_system.php
+  http://localhost/kpi_system/tests/test_system.php
 
-  The test suite runs 34 automated checks covering:
-  - Database connection and table structure
-  - KPI weights sum to exactly 100%
-  - Score calculation accuracy
-  - Performance classification (5 score ranges)
-  - At-risk detection with year filter
-  - Top performer identification
-  - Narrative generation
-  - Predictive model output
-  - Unique key and photo column existence
+  34 tests: DB connection, tables, KPI weights (100%), score calculation,
+  classification (5 ranges), trend, at-risk year filter, top performers,
+  narrative, team comparison, predictive model, unique key, photo column.
+
+================================================================================
+  DATABASE FILES
+================================================================================
+
+  database/kpi_system.sql
+    Single import — full schema + all sample data (2022–2026)
+
+  database/sample_training_recommendations.sql
+    Updates 2022 training_recommendation fields (were NULL)
+    Adds new comment records for 2024 (5 staff) and 2025 (4 staff)
+
+  database/sample_top_and_atrisk.sql
+    2025–2026 scores for Alice/Jack (top) and Emma/Iris (at-risk)
 
 ================================================================================
   END OF OVERVIEW
