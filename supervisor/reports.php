@@ -73,7 +73,7 @@ switch ($report_type) {
                     <h1 class="h2"><?= $report_title ?></h1>
                     <div class="btn-toolbar">
                         <div class="btn-group me-2">
-                            <select class="form-select" onchange="window.location.href='?type=<?= $report_type ?>&year='+this.value">
+                            <select class="form-select" aria-label="Filter by year" onchange="window.location.href='?type=<?= $report_type ?>&year='+this.value">
                                 <?php foreach ($available_years as $year): ?>
                                     <option value="<?= $year ?>" <?= $year == $selected_year ? 'selected' : '' ?>>
                                         <?= $year ?>

@@ -32,11 +32,7 @@ Start both **Apache** and **MySQL** in the XAMPP Control Panel.
 
 > **Note:** The `database/kpi_system.sql` file is included in the `database/` folder of this repository.
 
-**5. (Optional) Add training recommendation sample data**
-- SQL tab → paste contents of `database/sample_training_recommendations.sql` → **Go**
-- Adds training recommendations for 2022 (all staff), 2024 (5 staff), 2025 (4 staff)
-
-**6. Open the system**
+**5. Open the system**
 ```
 http://localhost/kpi_system/
 ```
@@ -225,7 +221,6 @@ kpi_system/
 │   └── training_recommendations.php  # Smart training recommendations
 ├── tests/
 │   └── test_system.php               # 34-test functional test suite
-├── CODE_EXPLAINED.txt                # PHP functions explained for Q&A
 ├── SYSTEM_OVERVIEW.txt               # Full system overview
 └── README.md                         # This file
 ```

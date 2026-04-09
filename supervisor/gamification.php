@@ -151,7 +151,7 @@ usort($leaderboard, function($a, $b) {
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                     <h1 class="h2"><i class="bi bi-controller"></i> Performance Gamification Dashboard</h1>
                     <div class="btn-toolbar">
-                        <select class="form-select" onchange="window.location.href='?year='+this.value">
+                        <select class="form-select" aria-label="Filter by year" onchange="window.location.href='?year='+this.value">
                             <?php foreach ($available_years as $year): ?>
                                 <option value="<?= $year ?>" <?= $year == $selected_year ? 'selected' : '' ?>>
                                     <?= $year ?>
