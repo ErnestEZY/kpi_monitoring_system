@@ -139,7 +139,7 @@ switch ($report_type) {
                                                         <span class="badge bg-success fs-6"><?= $staff['overall_score'] ?>%</span>
                                                     </td>
                                                     <td>
-                                                        <a href="staff_profile.php?id=<?= $staff['staff_id'] ?>" 
+                                                        <a href="staff_profile.php?id=<?= $staff['staff_id'] ?>&year=<?= $selected_year ?>" 
                                                            class="btn btn-sm btn-primary">
                                                             <i class="bi bi-eye"></i> View Profile
                                                         </a>
@@ -226,7 +226,7 @@ switch ($report_type) {
                                                     </td>
                                                     <td><?= htmlspecialchars($staff['reason']) ?></td>
                                                     <td>
-                                                        <a href="staff_profile.php?id=<?= $staff['staff_id'] ?>" 
+                                                        <a href="staff_profile.php?id=<?= $staff['staff_id'] ?>&year=<?= $selected_year ?>" 
                                                            class="btn btn-sm btn-primary">
                                                             <i class="bi bi-eye"></i> Review
                                                         </a>
