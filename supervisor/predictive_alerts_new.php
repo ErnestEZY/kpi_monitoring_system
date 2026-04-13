@@ -127,8 +127,8 @@ $pdo = getDBConnection();
                         <span class="spinner-border spinner-border-sm me-1"></span> Loading TensorFlow.js model…
                     </small>
                 </div>
-                <button class="btn btn-primary" onclick="runPredictions()">
-                    <i class="bi bi-arrow-clockwise"></i> Re-run Predictions
+                <button class="btn btn-primary" id="runBtn" onclick="runPredictions()">
+                    <i class="bi bi-play-fill"></i> Run Predictions
                 </button>
             </div>
 
@@ -136,12 +136,12 @@ $pdo = getDBConnection();
             <div class="alert alert-info d-flex gap-2 align-items-start mb-4">
                 <i class="bi bi-cpu-fill fs-5 mt-1"></i>
                 <div>
-                    <strong>How the AI works:</strong>
-                    A <em>Dense neural network</em> (2 hidden layers, ReLU activation) is trained
-                    on each staff member's yearly KPI scores using TensorFlow.js.
-                    It learns the trend pattern and predicts the next year's score.
-                    Confidence is derived from the model's mean-absolute-error on training data.
-                    Minimum <strong>3 years</strong> of data required per staff member.
+                    <strong>How to use:</strong>
+                    Click <strong>Run Predictions</strong> to train a neural network for each staff member
+                    and generate risk alerts. Results are saved for your session — you can navigate away
+                    and return without losing them. Click <strong>Re-run Predictions</strong> to refresh
+                    with the latest data.
+                    <br><small class="text-muted">Minimum 3 years of KPI data required per staff member. Powered by TensorFlow.js.</small>
                 </div>
             </div>
 
@@ -237,9 +237,10 @@ $pdo = getDBConnection();
                     <small class="text-muted" id="modelInfo"></small>
                 </div>
                 <div class="card-body" id="alertsContainer">
-                    <div class="text-center py-5">
-                        <div class="spinner-border text-primary"></div>
-                        <p class="mt-3 text-muted">Training neural network models…</p>
+                    <div class="text-center py-5 text-muted" id="readyState">
+                        <i class="bi bi-cpu fs-1 mb-3 d-block" style="color:#ffa000;"></i>
+                        <h5>Ready to Analyse</h5>
+                        <p class="mb-0">Click <strong>Run Predictions</strong> above to start.</p>
                     </div>
                 </div>
             </div>
@@ -277,11 +278,45 @@ tf.ready().then(() => {
     document.getElementById('tfStatus').innerHTML =
         '<i class="bi bi-check-circle-fill text-success me-1"></i>' +
         'TensorFlow.js ready — backend: <strong>' + tf.getBackend() + '</strong>';
-    runPredictions();
+
+    // Restore cached results from sessionStorage if available
+    const cached = sessionStorage.getItem('predictiveResults');
+    if (cached) {
+        try {
+            const results = JSON.parse(cached);
+            restoreFromCache(results);
+        } catch(e) {
+            sessionStorage.removeItem('predictiveResults');
+        }
+    }
 }).catch(err => {
     document.getElementById('tfStatus').innerHTML =
         '<i class="bi bi-x-circle-fill text-danger me-1"></i> TF.js failed to load: ' + err;
 });
+
+/* ── Restore previously computed results without retraining ── */
+function restoreFromCache(results) {
+    const counts = { critical: 0, high: 0, medium: 0, low: 0 };
+    results.forEach(r => counts[r.risk.level]++);
+    const total = results.length;
+    const pct = (n) => total > 0 ? Math.round((n / total) * 100) + '% of staff' : '0%';
+
+    $('#criticalCount').text(counts.critical);
+    $('#highCount').text(counts.high);
+    $('#mediumCount').text(counts.medium);
+    $('#lowCount').text(counts.low);
+    $('#criticalPct').text(pct(counts.critical));
+    $('#highPct').text(pct(counts.high));
+    $('#mediumPct').text(pct(counts.medium));
+    $('#lowPct').text(pct(counts.low));
+    $('#modelInfo').text(`${results.filter(r => r.scores).length || results.length} models trained · ${total} staff analysed (cached)`);
+
+    // Switch button to Re-run
+    document.getElementById('runBtn').innerHTML =
+        '<i class="bi bi-arrow-clockwise"></i> Re-run Predictions';
+
+    renderAlerts(results);
+}
 
 /* ── Build & train a tiny dense model for one staff member ── */
 async function trainModel(years, scores) {
@@ -418,6 +453,15 @@ async function runPredictions() {
 
     // Close loading and render results
     Swal.close();
+
+    // Save results to sessionStorage so they persist across page navigation
+    try {
+        sessionStorage.setItem('predictiveResults', JSON.stringify(results));
+    } catch(e) { /* storage full — ignore */ }
+
+    // Switch button to Re-run after first run
+    document.getElementById('runBtn').innerHTML =
+        '<i class="bi bi-arrow-clockwise"></i> Re-run Predictions';
 
     // Brief success toast
     Swal.fire({

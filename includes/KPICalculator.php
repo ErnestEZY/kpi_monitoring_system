@@ -312,79 +312,106 @@ class KPICalculator {
     }
     
     /**
-     * Generate narrative insights for a staff member
+     * Generate narrative insights for a staff member for a specific year.
+     * Returns a single clean paragraph. Always starts with "In {year}".
      */
-    public function generateNarrative($staff_id) {
+    public function generateNarrative(int $staff_id, int $year = 0): string {
         $trend = $this->getPerformanceTrend($staff_id);
-        
-        if (empty($trend)) {
-            return "No performance data available for analysis.";
+
+        // Default to most recent year if none specified
+        if ($year === 0) {
+            $year = empty($trend) ? (int)date('Y') : (int)end($trend)['year'];
         }
-        
-        $narrative = [];
-        $latest = end($trend);
-        $current_year = $latest['year'];
-        $current_score = $latest['overall_score'];
-        
-        // Overall performance assessment
+
+        // Check if this year has actual data
+        $current_data = $this->calculateOverallScore($staff_id, $year);
+
+        if (!$current_data['has_data']) {
+            return "In <strong>{$year}</strong>, no KPI scores have been recorded for this staff member yet. Please use the KPI Score Entry page to enter scores for this evaluation period.";
+        }
+
+        // Find this year's position in the trend array for context
+        $yearIndex = null;
+        foreach ($trend as $i => $entry) {
+            if ((int)$entry['year'] === $year) {
+                $yearIndex = $i;
+                break;
+            }
+        }
+
+        $sentences     = [];
+        $current_score = $current_data['overall_score'];
         $classification = $this->classifyPerformance($current_score);
-        $narrative[] = "Current Performance ({$current_year}): {$classification} with an overall score of {$current_score}%.";
-        
-        // Trend analysis (safe index access — no prev() pointer issues)
-        if (count($trend) > 1) {
-            $previous = $trend[count($trend) - 2];
-            $change   = $current_score - $previous['overall_score'];
-            
-            if ($change > 5) {
-                $narrative[] = "Shows significant improvement of " . round($change, 1) . " points compared to {$previous['year']}.";
-            } elseif ($change < -5) {
-                $narrative[] = "Performance declined by " . round(abs($change), 1) . " points compared to {$previous['year']}, requiring attention.";
-            } else {
-                $narrative[] = "Maintains consistent performance with minimal variation from previous year.";
+
+        // 1. Always start with "In {year}"
+        $sentences[] = "In <strong>{$year}</strong>, this staff member is classified as a <strong>{$classification}</strong> with an overall score of <strong>{$current_score}%</strong>.";
+
+        // 2. Year-on-year change — only if previous year has data
+        if ($yearIndex !== null && $yearIndex > 0) {
+            $previous      = $trend[$yearIndex - 1];
+            $prev_data     = $this->calculateOverallScore($staff_id, (int)$previous['year']);
+
+            if ($prev_data['has_data']) {
+                $change = round($current_score - $previous['overall_score'], 1);
+
+                if ($change > 5) {
+                    $sentences[] = "Performance improved by {$change} points compared to {$previous['year']}, reflecting strong progress.";
+                } elseif ($change < -5) {
+                    $sentences[] = "A decline of " . abs($change) . " points from {$previous['year']} has been noted and warrants attention.";
+                } else {
+                    $sentences[] = "Performance has remained consistent with {$previous['year']} with minimal variation.";
+                }
             }
         }
-        
-        // Multi-year trend
-        if (count($trend) >= 3) {
-            $first_score = $trend[0]['overall_score'];
-            $overall_change = $current_score - $first_score;
-            
+
+        // 3. Long-term trajectory — only if 3+ years of data exist before this year
+        if ($yearIndex !== null && $yearIndex >= 2) {
+            $first_score    = $trend[0]['overall_score'];
+            $overall_change = round($current_score - $first_score, 1);
+
             if ($overall_change > 10) {
-                $narrative[] = "Demonstrates strong long-term growth trajectory with " . round($overall_change, 1) . " points improvement since {$trend[0]['year']}.";
+                $sentences[] = "Over the longer term, scores have risen by {$overall_change} points since {$trend[0]['year']}, indicating sustained growth.";
             } elseif ($overall_change < -10) {
-                $narrative[] = "Long-term performance trend shows concerning decline of " . round(abs($overall_change), 1) . " points since {$trend[0]['year']}.";
+                $sentences[] = "Across all recorded years, there is a cumulative decline of " . abs($overall_change) . " points since {$trend[0]['year']}.";
             }
         }
-        
-        // Category analysis
-        $latest_calc = $this->calculateOverallScore($staff_id, $current_year);
-        $strengths = [];
+
+        // 4. Category strengths and weaknesses for the selected year
+        $strengths  = [];
         $weaknesses = [];
-        
-        foreach ($latest_calc['category_scores'] as $cat) {
-            if ($cat['score'] >= 85) {
+
+        foreach ($current_data['category_scores'] as $cat) {
+            if ($cat['score'] <= 0) continue;
+            $pct = ($cat['score'] / 5) * 100;
+
+            if ($pct >= 80) {
                 $strengths[] = $cat['category_name'];
-            } elseif ($cat['score'] < 70 && $cat['score'] > 0) {
+            } elseif ($pct < 60) {
                 $weaknesses[] = $cat['category_name'];
             }
         }
-        
+
+        $strengths  = array_unique($strengths);
+        $weaknesses = array_unique($weaknesses);
+
         if (!empty($strengths)) {
-            $narrative[] = "Key strengths: " . implode(", ", $strengths) . ".";
+            $sentences[] = "Notable strengths include: " . implode(', ', $strengths) . ".";
         }
-        
+
         if (!empty($weaknesses)) {
-            $narrative[] = "Areas requiring development: " . implode(", ", $weaknesses) . ".";
+            $sentences[] = "Areas that would benefit from development: " . implode(', ', $weaknesses) . ".";
         }
-        
-        // Recommendation
+
+        // 5. Closing recommendation
         if ($current_score < 65) {
-            $narrative[] = "Immediate intervention recommended through targeted training and close supervision.";
+            $sentences[] = "Immediate support through targeted training and regular check-ins is recommended.";
         } elseif ($current_score >= 85) {
-            $narrative[] = "Excellent candidate for leadership development and mentoring opportunities.";
+            $sentences[] = "This staff member is a strong candidate for leadership development and mentoring responsibilities.";
+        } else {
+            $sentences[] = "Continued coaching and goal-setting will help drive further improvement.";
         }
-        
-        return implode(" ", $narrative);
+
+        return implode(' ', $sentences);
     }
     
     /**

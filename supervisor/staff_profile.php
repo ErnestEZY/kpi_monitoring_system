@@ -32,13 +32,17 @@ if (!$staff) {
 // Get performance trend
 $trend = $calculator->getPerformanceTrend($staff_id);
 
-// Get current year data
-$current_year = date('Y');
-$current_data = $calculator->calculateOverallScore($staff_id, $current_year);
+// Get current year data — respect ?year= parameter if provided
+$available_years = range(2026, 2021);
+$current_year    = isset($_GET['year']) && in_array((int)$_GET['year'], $available_years)
+                   ? (int)$_GET['year']
+                   : (int)date('Y');
+
+$current_data   = $calculator->calculateOverallScore($staff_id, $current_year);
 $classification = $calculator->getPerformanceClassification($current_data['overall_score']);
 
-// Get narrative
-$narrative = $calculator->generateNarrative($staff_id);
+// Get narrative for the selected year
+$narrative = $calculator->generateNarrative($staff_id, $current_year);
 
 // Get team comparison
 $team_comparison = $calculator->compareToTeamAverage($staff_id, $current_year);
@@ -90,7 +94,16 @@ foreach ($names as $name) {
                         </a>
                         Staff Profile
                     </h1>
-                    <div class="btn-toolbar">
+                    <div class="d-flex align-items-center gap-2">
+                        <label class="form-label mb-0 text-muted small">Viewing year:</label>
+                        <select class="form-select form-select-sm" style="width:auto;"
+                                onchange="window.location.href='?id=<?= $staff_id ?>&year='+this.value">
+                            <?php foreach ($available_years as $y): ?>
+                                <option value="<?= $y ?>" <?= $y === $current_year ? 'selected' : '' ?>>
+                                    <?= $y ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
                         <button class="btn btn-sm btn-outline-secondary" onclick="window.print()">
                             <i class="bi bi-printer"></i> Print Profile
                         </button>
@@ -151,29 +164,47 @@ foreach ($names as $name) {
                                 </h6>
                             </div>
                             <div class="card-body">
+                                <?php if (!empty($trend)): ?>
                                 <div style="height: 300px;">
                                     <canvas id="trendChart" role="img" aria-label="Performance trend line chart over multiple years"></canvas>
                                 </div>
                                 <div class="mt-3">
                                     <p class="text-muted mb-2"><strong>Trend Analysis:</strong></p>
                                     <?php
-                                    if (count($trend) > 1) {
-                                        $latest = end($trend);
-                                        $previous = prev($trend);
-                                        $change = $latest['overall_score'] - $previous['overall_score'];
-                                        
-                                        if ($change > 5) {
-                                            echo '<p class="text-success"><i class="bi bi-arrow-up-circle-fill"></i> <strong>Improving:</strong> Performance has increased by ' . number_format($change, 1) . '% from last year. Keep up the excellent work!</p>';
-                                        } elseif ($change < -5) {
-                                            echo '<p class="text-danger"><i class="bi bi-arrow-down-circle-fill"></i> <strong>Declining:</strong> Performance has decreased by ' . number_format(abs($change), 1) . '% from last year. Immediate attention and support needed.</p>';
-                                        } else {
-                                            echo '<p class="text-info"><i class="bi bi-dash-circle-fill"></i> <strong>Stable:</strong> Performance is consistent with previous year. Consider setting new growth targets.</p>';
+                                    // Find selected year in trend
+                                    $selectedEntry  = null;
+                                    $previousEntry  = null;
+                                    foreach ($trend as $i => $t) {
+                                        if ((int)$t['year'] === $current_year) {
+                                            $selectedEntry = $t;
+                                            $previousEntry = $i > 0 ? $trend[$i - 1] : null;
+                                            break;
                                         }
+                                    }
+
+                                    if ($selectedEntry && $previousEntry) {
+                                        $change = $selectedEntry['overall_score'] - $previousEntry['overall_score'];
+                                        if ($change > 5) {
+                                            echo '<p class="text-success"><i class="bi bi-arrow-up-circle-fill"></i> <strong>Improving:</strong> Score rose by ' . number_format($change, 1) . ' points from ' . $previousEntry['year'] . ' to ' . $current_year . '.</p>';
+                                        } elseif ($change < -5) {
+                                            echo '<p class="text-danger"><i class="bi bi-arrow-down-circle-fill"></i> <strong>Declining:</strong> Score dropped by ' . number_format(abs($change), 1) . ' points from ' . $previousEntry['year'] . ' to ' . $current_year . '. Immediate attention needed.</p>';
+                                        } else {
+                                            echo '<p class="text-info"><i class="bi bi-dash-circle-fill"></i> <strong>Stable:</strong> Score remained consistent between ' . $previousEntry['year'] . ' and ' . $current_year . '.</p>';
+                                        }
+                                    } elseif ($selectedEntry) {
+                                        echo '<p class="text-muted"><i class="bi bi-info-circle-fill"></i> ' . $current_year . ' is the first recorded year for this staff member.</p>';
                                     } else {
-                                        echo '<p class="text-muted">Insufficient historical data for trend analysis.</p>';
+                                        echo '<p class="text-muted"><i class="bi bi-info-circle-fill"></i> No data recorded for ' . $current_year . '. The chart shows all available historical data.</p>';
                                     }
                                     ?>
                                 </div>
+                                <?php else: ?>
+                                <div class="d-flex flex-column align-items-center justify-content-center text-muted" style="height:300px;">
+                                    <i class="bi bi-graph-up fs-1 mb-3" style="opacity:.3;"></i>
+                                    <p class="mb-1 fw-semibold">No performance history available</p>
+                                    <small>Scores from at least one year are needed to display the trend.</small>
+                                </div>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
@@ -183,10 +214,11 @@ foreach ($names as $name) {
                         <div class="card shadow mb-4 w-100">
                             <div class="card-header">
                                 <h6 class="m-0 font-weight-bold text-primary">
-                                    <i class="bi bi-speedometer2"></i> Current Score
+                                    <i class="bi bi-speedometer2"></i> Score — <?= $current_year ?>
                                 </h6>
                             </div>
                             <div class="card-body text-center d-flex flex-column">
+                                <?php if ($current_data['has_data']): ?>
                                 <div class="flex-grow-1 d-flex flex-column align-items-center justify-content-center">
                                     <div style="height: 200px; position: relative; display: flex; align-items: center; justify-content: center;">
                                         <div style="position: relative; width: 200px; height: 200px;">
@@ -221,6 +253,13 @@ foreach ($names as $name) {
                                         </p>
                                     <?php endif; ?>
                                 </div>
+                                <?php else: ?>
+                                <div class="flex-grow-1 d-flex flex-column align-items-center justify-content-center text-muted">
+                                    <i class="bi bi-clipboard-x fs-1 mb-3" style="opacity:.4;"></i>
+                                    <p class="mb-1 fw-semibold">No data for <?= $current_year ?></p>
+                                    <small>KPI scores have not been entered for this year yet.</small>
+                                </div>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
@@ -232,13 +271,21 @@ foreach ($names as $name) {
                         <div class="card shadow mb-4 w-100">
                             <div class="card-header">
                                 <h6 class="m-0 font-weight-bold text-primary">
-                                    <i class="bi bi-pie-chart-fill"></i> KPI Category Breakdown
+                                    <i class="bi bi-pie-chart-fill"></i> KPI Category Breakdown — <?= $current_year ?>
                                 </h6>
                             </div>
                             <div class="card-body">
+                                <?php if ($current_data['has_data']): ?>
                                 <div style="height: 320px;">
                                     <canvas id="categoryChart" role="img" aria-label="KPI category breakdown radar chart"></canvas>
                                 </div>
+                                <?php else: ?>
+                                <div class="d-flex flex-column align-items-center justify-content-center text-muted" style="height:320px;">
+                                    <i class="bi bi-pie-chart fs-1 mb-3" style="opacity:.3;"></i>
+                                    <p class="mb-1 fw-semibold">No category data for <?= $current_year ?></p>
+                                    <small>Enter KPI scores to see the category breakdown.</small>
+                                </div>
+                                <?php endif; ?>
                                 <?php
                                 $sql_cat = "SELECT km.section, AVG(ks.score) as avg_score
                                             FROM kpi_scores ks
@@ -285,7 +332,7 @@ foreach ($names as $name) {
                                 </h6>
                             </div>
                             <div class="card-body d-flex flex-column" style="min-height: 0;">
-                                <div style="flex: 1; overflow-y: auto;">
+                                <div style="flex: 1; overflow-y: auto; min-height: 320px;">
                                 <?php
                                 // Get category scores for current year
                                 $sql = "SELECT km.section, AVG(ks.score) as avg_score
@@ -332,7 +379,11 @@ foreach ($names as $name) {
                                         <?php endforeach; ?>
                                     </div>
                                 <?php else: ?>
-                                    <p class="text-muted">No category data available for <?= $current_year ?>.</p>
+                                    <div class="d-flex flex-column align-items-center justify-content-center text-muted h-100">
+                                        <i class="bi bi-bar-chart fs-1 mb-3" style="opacity:.3;"></i>
+                                        <p class="mb-1 fw-semibold">No data for <?= $current_year ?></p>
+                                        <small>KPI scores have not been entered for this evaluation year.</small>
+                                    </div>
                                 <?php endif; ?>
                                 </div>
                                 <?php if (!empty($category_scores)): ?>

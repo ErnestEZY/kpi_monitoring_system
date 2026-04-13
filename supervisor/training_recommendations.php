@@ -75,9 +75,10 @@ $pdo = getDBConnection();
         }
         
         .match-score {
-            font-size: 1.5rem;
+            font-size: 2.8rem;
             font-weight: bold;
             color: #667eea;
+            line-height: 1;
         }
         
         .training-card .card-body {
@@ -129,9 +130,10 @@ $pdo = getDBConnection();
                 </div>
                 
                 <div class="mb-3">
-                    <button class="btn btn-primary" onclick="generateRecommendations()">
+                    <button class="btn btn-primary" id="generateBtn" onclick="generateRecommendations()">
                         <i class="bi bi-robot"></i> Generate Recommendations
                     </button>
+                    <small class="text-muted ms-2">Results are saved for your session — navigate away and return without losing them.</small>
                 </div>
                 
                 <!-- Summary Cards -->
@@ -214,9 +216,10 @@ $pdo = getDBConnection();
                 
                 <!-- Recommendations List -->
                 <div id="recommendationsContainer">
-                    <div class="text-center py-5">
-                        <div class="spinner-border text-primary" role="status"></div>
-                        <p class="mt-3">Analyzing performance data and generating recommendations...</p>
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-mortarboard-fill fs-1 mb-3 d-block text-primary" style="opacity:.4;"></i>
+                        <h5>No Recommendations Generated Yet</h5>
+                        <p class="mb-0">Click <strong>Generate Recommendations</strong> above to analyse staff performance and identify training needs.</p>
                     </div>
                 </div>
             </main>
@@ -254,8 +257,21 @@ $pdo = getDBConnection();
         let allRecommendations = []; // Store all recommendations for client-side filtering
         
         $(document).ready(function() {
-            loadTrainingRecommendations();
+            // Auto-run removed — supervisor clicks "Generate Recommendations" to start
             loadDepartments();
+
+            // Restore cached results if available
+            const cached = sessionStorage.getItem('trainingResults');
+            if (cached) {
+                try {
+                    const data = JSON.parse(cached);
+                    allRecommendations = data.recommendations || [];
+                    displayRecommendations(data);
+                    $('#generateBtn').html('<i class="bi bi-arrow-clockwise"></i> Re-generate');
+                } catch(e) {
+                    sessionStorage.removeItem('trainingResults');
+                }
+            }
         });
         
         function loadDepartments() {
@@ -385,6 +401,11 @@ $pdo = getDBConnection();
             $('#totalPrograms').text(data.summary.total_programs);
             $('#criticalGaps').text(data.summary.critical_gaps);
             $('#avgMatchScore').text(Math.round(data.summary.avg_match_score) + '%');
+
+            // Cache results in sessionStorage for persistence across navigation
+            try {
+                sessionStorage.setItem('trainingResults', JSON.stringify(data));
+            } catch(e) { /* storage full — ignore */ }
             
             // Extract and populate departments from recommendations
             if (data.recommendations && data.recommendations.length > 0) {
@@ -451,19 +472,18 @@ $pdo = getDBConnection();
                                         </div>
                                     </div>
                                     
-                                    <div class="col-md-4 text-center d-flex flex-column justify-content-between">
-                                        <div>
-                                            <div class="mb-3">
-                                                <div class="match-score">${rec.match_score}%</div>
-                                                <small class="text-muted">Match Score</small>
-                                            </div>
-                                            
-                                            <div class="mb-3">
-                                                <span class="badge bg-${rec.priority === 'high' ? 'danger' : rec.priority === 'medium' ? 'warning' : 'success'} text-${rec.priority === 'medium' ? 'dark' : 'white'}">
-                                                    ${rec.priority.toUpperCase()} PRIORITY
-                                                </span>
-                                            </div>
+                                    <div class="col-md-4 d-flex flex-column justify-content-center align-items-center text-center py-3">
+                                        <div class="mb-3">
+                                            <div class="match-score">${rec.match_score}%</div>
+                                            <div class="text-muted mt-1">Match Score</div>
                                         </div>
+                                        
+                                        <div class="mb-3 w-100 px-2">
+                                            <span class="badge w-100 py-2 fs-6 bg-${rec.priority === 'high' ? 'danger' : rec.priority === 'medium' ? 'warning' : 'success'} text-${rec.priority === 'medium' ? 'dark' : 'white'}">
+                                                ${rec.priority.toUpperCase()} PRIORITY
+                                            </span>
+                                        </div>
+                                    </div>
                                         
                                         <div>
                                             <button class="btn btn-primary btn-sm w-100 mb-2" onclick="viewTrainingDetails(${rec.staff_id}, '${rec.recommended_program}')">
@@ -546,8 +566,6 @@ $pdo = getDBConnection();
         }
         
         function generateRecommendations() {
-            // Re-runs the same analysis with a loading indicator
-            // The recommendations are recalculated fresh from the latest scores
             Swal.fire({
                 title: 'Analysing Performance Data',
                 text: 'Identifying skill gaps and matching training programs...',
@@ -559,6 +577,8 @@ $pdo = getDBConnection();
             setTimeout(() => {
                 loadTrainingRecommendations();
                 Swal.close();
+                // Switch button to Re-generate after first run
+                $('#generateBtn').html('<i class="bi bi-arrow-clockwise"></i> Re-generate');
                 Swal.fire({
                     icon: 'success',
                     title: 'Recommendations Ready',
