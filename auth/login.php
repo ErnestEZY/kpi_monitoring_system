@@ -186,5 +186,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Clear any cached analytics results from the previous session
+        sessionStorage.removeItem('predictiveResults');
+        sessionStorage.removeItem('trainingResults');
+    </script>
 </body>
 </html>
