@@ -479,12 +479,12 @@ $pdo = getDBConnection();
                                         </div>
                                         
                                         <div class="mb-3 w-100 px-2">
-                                            <span class="badge w-100 py-2 fs-6 bg-${rec.priority === 'high' ? 'danger' : rec.priority === 'medium' ? 'warning' : 'success'} text-${rec.priority === 'medium' ? 'dark' : 'white'}">
+                                            <span class="badge w-100 py-2 fs-6 bg-${rec.priority === 'high' ? 'danger' : rec.priority === 'medium' ? 'warning' : 'success'} text-${rec.priority === 'medium' ? 'dark' : 'white'}" style="border: 2px solid rgba(0,0,0,.15); border-radius: 8px;">
                                                 ${rec.priority.toUpperCase()} PRIORITY
                                             </span>
                                         </div>
 
-                                        <div class="w-100 px-2">
+                                        <div class="w-100 px-2 mt-4">
                                             <button class="btn btn-primary btn-sm w-100 mb-2" onclick="viewTrainingDetails(${rec.staff_id}, '${rec.recommended_program}')">
                                                 <i class="bi bi-eye"></i> View Details
                                             </button>
