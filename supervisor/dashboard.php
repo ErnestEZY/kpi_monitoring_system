@@ -223,7 +223,7 @@ $available_years = range(2026, 2021);
                             <li>
                                 <strong><?= htmlspecialchars($staff['full_name']) ?></strong> 
                                 (<?= $staff['current_score'] ?>%) - <?= $staff['reason'] ?>
-                                <a href="staff_profile.php?id=<?= $staff['staff_id'] ?>" class="alert-link">View Profile</a>
+                                <a href="staff_profile.php?id=<?= $staff['staff_id'] ?>&year=<?= $selected_year ?>" class="alert-link">View Profile</a>
                             </li>
                         <?php endforeach; ?>
                     </ul>
@@ -337,7 +337,7 @@ $available_years = range(2026, 2021);
                                 <?php else: ?>
                                     <div class="list-group mb-4">
                                         <?php foreach (array_slice($top_performers, 0, 3) as $performer): ?>
-                                            <a href="staff_profile.php?id=<?= $performer['staff_id'] ?>" 
+                                            <a href="staff_profile.php?id=<?= $performer['staff_id'] ?>&year=<?= $selected_year ?>" 
                                                class="list-group-item list-group-item-action">
                                                 <div class="d-flex w-100 justify-content-between">
                                                     <h6 class="mb-1"><?= htmlspecialchars($performer['full_name']) ?></h6>
@@ -356,7 +356,7 @@ $available_years = range(2026, 2021);
                                 <?php else: ?>
                                     <div class="list-group">
                                         <?php foreach (array_slice($at_risk_staff, 0, 3) as $staff): ?>
-                                            <a href="staff_profile.php?id=<?= $staff['staff_id'] ?>" 
+                                            <a href="staff_profile.php?id=<?= $staff['staff_id'] ?>&year=<?= $selected_year ?>" 
                                                class="list-group-item list-group-item-action list-group-item-warning">
                                                 <div class="d-flex w-100 justify-content-between">
                                                     <h6 class="mb-1"><?= htmlspecialchars($staff['full_name']) ?></h6>
@@ -411,7 +411,7 @@ $available_years = range(2026, 2021);
                                                 </span>
                                             </td>
                                             <td>
-                                                <a href="staff_profile.php?id=<?= $staff['staff_id'] ?>" 
+                                                <a href="staff_profile.php?id=<?= $staff['staff_id'] ?>&year=<?= $selected_year ?>" 
                                                    class="btn btn-sm btn-primary">
                                                     <i class="bi bi-eye"></i> View
                                                 </a>
