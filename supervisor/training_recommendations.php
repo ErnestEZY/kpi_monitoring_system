@@ -483,9 +483,8 @@ $pdo = getDBConnection();
                                                 ${rec.priority.toUpperCase()} PRIORITY
                                             </span>
                                         </div>
-                                    </div>
-                                        
-                                        <div>
+
+                                        <div class="w-100 px-2">
                                             <button class="btn btn-primary btn-sm w-100 mb-2" onclick="viewTrainingDetails(${rec.staff_id}, '${rec.recommended_program}')">
                                                 <i class="bi bi-eye"></i> View Details
                                             </button>
