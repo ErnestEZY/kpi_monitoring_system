@@ -214,6 +214,20 @@ $pdo = getDBConnection();
                     </div>
                 </div>
                 
+                <!-- Skill Gap Legend -->
+                <div class="d-flex align-items-center gap-3 flex-wrap mb-3 px-1">
+                    <small class="text-muted fw-semibold me-1">Skill Gap Indicator:</small>
+                    <span class="skill-gap-badge gap-critical">
+                        <i class="bi bi-exclamation-circle-fill me-1"></i>Critical — score &lt; 50%
+                    </span>
+                    <span class="skill-gap-badge gap-moderate">
+                        <i class="bi bi-dash-circle-fill me-1"></i>Moderate — score 50–69%
+                    </span>
+                    <span class="skill-gap-badge gap-minor">
+                        <i class="bi bi-info-circle-fill me-1"></i>Minor — score 70–84%
+                    </span>
+                </div>
+
                 <!-- Recommendations List -->
                 <div id="recommendationsContainer">
                     <div class="text-center py-5 text-muted">
@@ -489,7 +503,7 @@ $pdo = getDBConnection();
                                             <button class="btn btn-info btn-sm w-100 mb-2" onclick="editComment(${rec.staff_id})">
                                                 <i class="bi bi-pencil-square"></i> Edit Comment
                                             </button>
-                                            <button class="btn btn-success btn-sm w-100" onclick="assignTrainingQuick(${rec.staff_id}, '${rec.recommended_program}')">
+                                            <button class="btn btn-success btn-sm w-100" onclick="assignTrainingQuick(${rec.staff_id}, '${rec.recommended_program}', '${rec.program_description.replace(/'/g, "\\'")}')">
                                                 <i class="bi bi-check-circle"></i> Assign Now
                                             </button>
                                         </div>
@@ -624,25 +638,10 @@ $pdo = getDBConnection();
             }, 1000);
         }
         
-        function assignTrainingQuick(staffId, program) {
-            Swal.fire({
-                title: 'Assign Training',
-                text: `Assign "${program}" to this staff member?`,
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonText: 'Yes, Assign',
-                confirmButtonColor: '#667eea'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Training Assigned',
-                        text: 'The staff member has been enrolled and will receive notification.',
-                        timer: 2000,
-                        showConfirmButton: false
-                    });
-                }
-            });
+        function assignTrainingQuick(staffId, program, description) {
+            // Redirect to staff profile with comment modal open and training recommendation pre-filled
+            const rec = encodeURIComponent(`${program}: ${description}`);
+            window.location.href = `staff_profile.php?id=${staffId}&openComment=true&prefillTraining=${rec}`;
         }
         
         function editComment(staffId) {

@@ -536,7 +536,7 @@ foreach ($names as $name) {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <script>
-        // Auto-open comment modal if coming from training needs
+        // Auto-open comment modal if coming from training needs or assign button
         document.addEventListener('DOMContentLoaded', function() {
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('openComment') === 'true') {
@@ -544,6 +544,9 @@ foreach ($names as $name) {
                 commentModal.show();
             }
         });
+
+        // Pass prefillTraining value to Alpine component via a global variable
+        const prefillTraining = <?= json_encode($_GET['prefillTraining'] ?? '') ?>;
     </script>
     
     <!-- Alpine.js Comment Assistant Component -->
@@ -559,6 +562,11 @@ foreach ($names as $name) {
                 
                 init() {
                     this.loadExistingCommentSilent();
+
+                    // Pre-fill training recommendation if coming from Assign Now
+                    if (prefillTraining) {
+                        this.training = prefillTraining;
+                    }
                 },
                 
                 async loadExistingCommentSilent() {
