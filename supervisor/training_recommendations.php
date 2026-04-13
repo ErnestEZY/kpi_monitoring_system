@@ -473,13 +473,11 @@ $pdo = getDBConnection();
                                     </div>
                                     
                                     <div class="col-md-4 d-flex flex-column justify-content-center align-items-center text-center py-3">
-                                        <div class="mb-3">
+                                        <div class="mb-3 w-100 px-2" style="border: 2px solid #dee2e6; border-radius: 10px; padding: 14px !important;">
                                             <div class="match-score">${rec.match_score}%</div>
                                             <div class="text-muted mt-1">Match Score</div>
-                                        </div>
-                                        
-                                        <div class="mb-3 w-100 px-2">
-                                            <span class="badge w-100 py-2 fs-6 bg-${rec.priority === 'high' ? 'danger' : rec.priority === 'medium' ? 'warning' : 'success'} text-${rec.priority === 'medium' ? 'dark' : 'white'}" style="border: 2px solid rgba(0,0,0,.15); border-radius: 8px;">
+                                            <hr class="my-2">
+                                            <span class="badge w-100 py-2 fs-6 bg-${rec.priority === 'high' ? 'danger' : rec.priority === 'medium' ? 'warning' : 'success'} text-${rec.priority === 'medium' ? 'dark' : 'white'}" style="border-radius: 6px;">
                                                 ${rec.priority.toUpperCase()} PRIORITY
                                             </span>
                                         </div>
