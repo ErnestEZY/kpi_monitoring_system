@@ -561,12 +561,12 @@ foreach ($names as $name) {
                 isSaving: false,
                 
                 init() {
-                    this.loadExistingCommentSilent();
-
-                    // Pre-fill training recommendation if coming from Assign Now
-                    if (prefillTraining) {
-                        this.training = prefillTraining;
-                    }
+                    // Load existing comment first, then apply prefill on top if provided
+                    this.loadExistingCommentSilent().then(() => {
+                        if (prefillTraining) {
+                            this.training = prefillTraining;
+                        }
+                    });
                 },
                 
                 async loadExistingCommentSilent() {
@@ -585,6 +585,7 @@ foreach ($names as $name) {
                     } catch (error) {
                         console.error('Failed to load comment:', error);
                     }
+                    // always returns a resolved promise (async function)
                 },
                 
                 async saveCommentAndClose() {

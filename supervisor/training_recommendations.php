@@ -503,7 +503,7 @@ $pdo = getDBConnection();
                                             <button class="btn btn-info btn-sm w-100 mb-2" onclick="editComment(${rec.staff_id})">
                                                 <i class="bi bi-pencil-square"></i> Edit Comment
                                             </button>
-                                            <button class="btn btn-success btn-sm w-100" onclick="assignTrainingQuick(${rec.staff_id}, '${rec.recommended_program}', '${rec.program_description.replace(/'/g, "\\'")}')">
+                                            <button class="btn btn-success btn-sm w-100" onclick="assignTrainingQuick(${rec.staff_id}, '${rec.recommended_program}')">
                                                 <i class="bi bi-check-circle"></i> Assign Now
                                             </button>
                                         </div>
@@ -638,10 +638,21 @@ $pdo = getDBConnection();
             }, 1000);
         }
         
-        function assignTrainingQuick(staffId, program, description) {
-            // Redirect to staff profile with comment modal open and training recommendation pre-filled
-            const rec = encodeURIComponent(`${program}: ${description}`);
-            window.location.href = `staff_profile.php?id=${staffId}&openComment=true&prefillTraining=${rec}`;
+        function assignTrainingQuick(staffId, program) {
+            Swal.fire({
+                title: 'Assign Training',
+                text: `Assign "${program}" to this staff member?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Assign',
+                confirmButtonColor: '#667eea',
+                cancelButtonColor: '#6c757d'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const rec = encodeURIComponent(program);
+                    window.location.href = `staff_profile.php?id=${staffId}&openComment=true&prefillTraining=${rec}`;
+                }
+            });
         }
         
         function editComment(staffId) {
