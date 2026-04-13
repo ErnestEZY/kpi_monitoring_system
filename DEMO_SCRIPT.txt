@@ -1,0 +1,303 @@
+================================================================================
+  PRESENTATION SCRIPT — KPI MONITORING SYSTEM
+  5-Minute Screen Recording
+================================================================================
+
+Speak naturally. These are guides, not word-for-word lines.
+Keep your tone calm and confident.
+
+================================================================================
+  SEGMENT 1 — LOGIN
+================================================================================
+
+"Let me start by logging into the system.
+This is the KPI Monitoring System — a web-based platform built for supervisors
+to track and analyse the performance of their sales assistants.
+
+I'll log in using the admin account."
+
+[Type credentials and click Login]
+
+================================================================================
+  SEGMENT 2 — SUPERVISOR DASHBOARD
+================================================================================
+
+"This is the Supervisor Dashboard — the first thing a supervisor sees after
+logging in. At the top, we have four summary cards showing the total number
+of staff, how many are top performers, how many are at risk, and the team's
+average score. Each card is clickable and has a tooltip explaining what it shows.
+
+Below that, we have an Attention Required section that flags staff who need
+immediate support.
+
+This gamified section here classifies staff into performance levels —
+Platinum, Gold, Silver, Bronze, and Developing — to make performance
+more engaging and motivating.
+
+And this doughnut chart shows the overall performance distribution of the team.
+Notice the year is displayed right in the centre of the chart, so the supervisor
+always knows which period they're looking at.
+
+On the right, we have the top performers and at-risk staff listed side by side
+for quick reference."
+
+[Change year filter]
+
+"The supervisor can also filter by year — the entire dashboard updates
+to reflect the selected evaluation period."
+
+================================================================================
+  SEGMENT 3 — KPI SCORE ENTRY
+================================================================================
+
+"Now let me show how a supervisor enters KPI scores.
+I'll select a staff member and the evaluation year."
+
+[Select staff and year]
+
+"The system has 21 KPIs organised into two sections — Core Competencies
+and KPI Achievement. The KPI Achievement section is further broken down
+into five categories, and each category is collapsible to reduce scrolling.
+
+Each KPI has five score buttons — colour-coded from red for Very Poor
+all the way to green for Excellent.
+
+As I select scores, notice the sidebar on the right updates in real time —
+the overall score recalculates, the doughnut chart animates, and the
+performance classification updates instantly.
+
+This gives the supervisor immediate feedback before they even save."
+
+================================================================================
+  SEGMENT 4 — ALL STAFF
+================================================================================
+
+"The All Staff page shows every sales assistant as a card.
+Each card displays the staff member's initials on the left and their
+professional photo on the right.
+
+The supervisor can filter by year, department, performance level, or
+search for a specific staff member using the dropdown.
+
+Let me filter by Top Performer to see only the high achievers."
+
+[Apply filter]
+
+"And I can click View Full Profile to go into any individual's detailed page."
+
+================================================================================
+  SEGMENT 5 — STAFF PROFILE
+================================================================================
+
+"This is the Staff Profile page. At the top, we have the staff member's
+details with their photo on the right side of the header.
+
+Below that is the Performance Story — this is automatically generated
+by the system based on the staff member's actual data. It describes their
+current performance level, trend, strengths, and areas for improvement
+in plain, professional language.
+
+Scrolling down, we have three visual charts:
+First, the Performance Trend chart showing how their score has changed
+year by year. The storytelling text below explains whether they are
+improving, declining, or stable.
+
+Next, the Current Score gauge showing their overall percentage at a glance.
+
+And the KPI Category radar chart showing which areas they are strongest
+and weakest in.
+
+Below the charts, the Strengths and Weaknesses section breaks this down
+further with progress bars.
+
+Finally, the supervisor can add or edit a comment by clicking this button,
+which opens the Smart Comment Assistant. It has quick templates to speed
+up the process, and saves automatically."
+
+================================================================================
+  SEGMENT 6 — ANALYTICS
+================================================================================
+
+"The Analytics Dashboard is where supervisors can do deeper analysis.
+There are three filters at the top — year, department, and performance level —
+and all five charts update based on the selection.
+
+The first chart is the Performance Distribution doughnut, again with the
+year in the centre.
+
+The Department Comparison bar chart shows which departments are performing
+better than others. The insight below it automatically tells the supervisor
+what the gap means and what action to consider.
+
+The Multi-Year Trend chart tracks the team's average, minimum, and maximum
+scores across all years — so you can see whether the team is improving
+over time.
+
+The KPI Category Averages radar chart shows which categories the team
+excels in and which need attention.
+
+And the Score Distribution histogram shows how scores are spread across
+the team — useful for spotting if most staff are clustered in one range.
+
+Every chart has a data-driven insight below it that changes based on
+the actual numbers."
+
+================================================================================
+  SEGMENT 7 — REPORTS
+================================================================================
+
+"Under the Reports section, we have three types of reports.
+
+Top Performers lists all staff who scored 85% or above for the selected year.
+
+At-Risk Staff shows staff who are underperforming — this is year-specific,
+so changing the year gives you a different list based on that period's data.
+
+Training Needs shows the supervisor's training recommendations for each
+staff member. At the bottom, the system analyses all the recommendations
+and identifies the most common training needs across the team — shown
+here as a ranked list with progress bars.
+
+Let me switch to 2022 to show historical data is also available."
+
+[Change year to 2022]
+
+"You can see the full history going back to 2022, and the supervisor can
+export any report to CSV with this button."
+
+================================================================================
+  SEGMENT 8 — PREDICTIVE ALERTS (TensorFlow.js)
+================================================================================
+
+"This is one of our four innovative features — Predictive Performance Alerts,
+powered by TensorFlow.js.
+
+What makes this special is that the machine learning model runs entirely
+inside the browser — no server-side Python or external ML service is needed.
+
+The system trains a small neural network for each staff member using their
+historical KPI scores, and predicts what their performance will look like
+next year.
+
+This threshold bar here shows exactly how the system classifies the predictions —
+below 50% is Critical, 50 to 64 is High Risk, 65 to 74 is Medium, and
+75 and above is Low or Stable.
+
+You can see the loading indicator while the models are being trained."
+
+[Wait for training to complete]
+
+"Once done, the summary cards show how many staff fall into each risk category
+and what percentage of the team that represents.
+
+The alert cards show the at-risk staff with specific recommended actions.
+
+And at the bottom, the Low and Stable staff are hidden in this collapsed
+section — the supervisor can expand it if they want to see who is on track."
+
+================================================================================
+  SEGMENT 9 — TRAINING RECOMMENDATIONS
+================================================================================
+
+"The Smart Training Recommendations feature automatically analyses each
+staff member's performance gaps and matches them to the most suitable
+training program.
+
+Each recommendation card shows the staff member's identified skill gaps —
+colour-coded as Critical, Moderate, or Minor — along with a match score
+showing how well the recommended program fits their specific needs.
+
+The supervisor can click Edit Comment to go directly to that staff member's
+profile and update the training recommendation — the comment modal opens
+automatically."
+
+================================================================================
+  SEGMENT 10 — ANOMALY DETECTION
+================================================================================
+
+"The Anomaly Detection feature scans a staff member's performance history
+for unusual patterns.
+
+I'll select a staff member here."
+
+[Select staff]
+
+"The system detects three types of anomalies — sudden spikes, sudden drops,
+and consecutive declines over multiple years.
+
+Each anomaly is marked on the chart and explained in plain language below,
+so the supervisor understands exactly what happened and when."
+
+================================================================================
+  SEGMENT 11 — PEER COMPARISON
+================================================================================
+
+"The Peer Comparison feature allows supervisors to compare any two staff
+members side by side.
+
+I'll select a staff member and choose Auto-select Best Match."
+
+[Click Compare]
+
+"The system finds the most similar peer and displays both staff cards
+with their overall scores — shown as proper percentages.
+
+The radar chart here compares their KPI category scores across all dimensions,
+making it easy to see where one staff member is stronger or weaker than
+their peer.
+
+The similarity score tells the supervisor how comparable these two staff
+members are.
+
+One feature I want to highlight — the supervisor can also choose
+Specific Staff Member to manually pick who they want to compare against.
+This is useful for mentorship planning or benchmarking against a top performer."
+
+================================================================================
+  SEGMENT 12 — GAMIFICATION / CLOSE
+================================================================================
+
+"Finally, the gamification feature turns performance data into a leaderboard.
+
+Staff earn points based on their scores, improvement trends, and consistency.
+The top three are displayed on a podium, and the full leaderboard shows
+everyone's points, level, and badges earned.
+
+This feature is designed to motivate staff by making performance visible
+and rewarding consistent improvement."
+
+[Return to dashboard or end on predictive alerts]
+
+"That covers all the main features of the KPI Monitoring System —
+from data entry and staff profiles, through analytics and reports,
+to the four innovative features powered by machine learning and
+intelligent algorithms.
+
+Thank you."
+
+================================================================================
+  QUICK REFERENCE — KEY POINTS TO MENTION
+================================================================================
+
+  SYSTEM:
+  - Supervisor-only system (no staff login)
+  - 13 staff, 21 KPIs, data from 2022 to 2026
+  - Built with PHP, MySQL, Bootstrap 5, Chart.js, TensorFlow.js
+
+  INNOVATIVE FEATURES:
+  1. Predictive Alerts    — TF.js neural network, runs in browser
+  2. Training Recommendations — skill gap matching, 6 programs
+  3. Anomaly Detection    — spike/drop/decline detection + narrative
+  4. Peer Comparison      — similarity scoring, specific staff option
+
+  FORMULA (if asked):
+  - weighted_score = (score / 5) × (weight / 100)
+  - overall % = sum of all 21 weighted scores × 100
+
+  TENSORFLOW.JS (if asked):
+  - Dense neural network: Input → Dense(8) → Dense(4) → Dense(1)
+  - Trains in the browser using historical yearly scores
+  - Predicts next year's score, classifies into 4 risk levels
+  - No Python or server-side ML needed
+
+================================================================================

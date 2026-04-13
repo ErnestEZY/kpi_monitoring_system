@@ -546,13 +546,14 @@ $pdo = getDBConnection();
         }
         
         function generateRecommendations() {
+            // Re-runs the same analysis with a loading indicator
+            // The recommendations are recalculated fresh from the latest scores
             Swal.fire({
-                title: 'Generating Recommendations',
-                html: 'AI is analyzing performance data...',
+                title: 'Analysing Performance Data',
+                text: 'Identifying skill gaps and matching training programs...',
                 allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
+                showConfirmButton: false,
+                didOpen: () => { Swal.showLoading(); }
             });
             
             setTimeout(() => {
@@ -560,12 +561,12 @@ $pdo = getDBConnection();
                 Swal.close();
                 Swal.fire({
                     icon: 'success',
-                    title: 'Recommendations Updated',
-                    text: 'Training recommendations have been regenerated based on latest performance data.',
+                    title: 'Recommendations Ready',
+                    text: 'Training recommendations have been refreshed based on the latest performance data.',
                     timer: 2000,
                     showConfirmButton: false
                 });
-            }, 2000);
+            }, 1500);
         }
         
         function viewTrainingDetails(staffId, program) {

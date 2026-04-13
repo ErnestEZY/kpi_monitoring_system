@@ -2,6 +2,11 @@
 
 A web-based performance monitoring system for sales assistants, built with PHP, MySQL, Bootstrap 5, and TensorFlow.js.
 
+Student Information:
+Eh Zhong Yu (0139116)
+Lau Jin Yee (0139351)
+Chan Ming Jiang (M44100114)
+
 ---
 
 ## Installation (XAMPP Localhost)

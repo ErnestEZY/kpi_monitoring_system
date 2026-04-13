@@ -1,0 +1,261 @@
+================================================================================
+  5-MINUTE SCREEN RECORDING — DEMO FLOW
+  KPI Monitoring System
+================================================================================
+
+Total time: ~5 minutes
+Tip: Have the system already running at http://localhost/kpi_system/
+     before you start recording. Use year 2026 for most demos.
+
+================================================================================
+  SEGMENT 1 — LOGIN  (0:00 – 0:20)
+================================================================================
+
+ACTION:
+  - Open browser to http://localhost/kpi_system/
+  - Show the login page briefly
+  - Type: admin / admin123
+  - Click Login
+
+WHAT TO SHOW:
+  - The branded login card with gradient header
+  - The demo credentials section at the bottom
+
+================================================================================
+  SEGMENT 2 — SUPERVISOR DASHBOARD  (0:20 – 1:00)
+================================================================================
+
+ACTION:
+  - Land on the dashboard
+  - Point to the 4 summary cards (hover over each to show tooltip)
+  - Scroll down to show the Attention Required alert
+  - Show the gamified level distribution (Platinum/Gold/Silver/Bronze)
+  - Point to the Performance Distribution doughnut chart (year in centre)
+  - Show the Top Performers & At-Risk side panel
+  - Briefly show the staff performance table at the bottom
+  - Change the year filter to 2025 to show it updates
+
+WHAT TO SHOW:
+  - Clickable cards with hover animation
+  - Year label in the centre of the doughnut chart
+  - At-risk staff names with "View Profile" links
+
+================================================================================
+  SEGMENT 3 — KPI SCORE ENTRY  (1:00 – 1:30)
+================================================================================
+
+ACTION:
+  - Click "KPI Score Entry" in the sidebar
+  - Select any staff member (e.g. Bob Smith) and year 2026
+  - Show the collapsible sections (click to expand a category)
+  - Click a few score buttons (1–5) to show the colour-coded buttons
+  - Point to the live sidebar: score updates in real time, doughnut animates
+  - Show the progress bar filling as more scores are entered
+  - Do NOT submit — just demonstrate the interface
+
+WHAT TO SHOW:
+  - Collapsible Core Competencies + 5 KPI categories
+  - Colour-coded score buttons (red → green)
+  - Real-time score calculation in the sidebar
+  - Classification badge updating live
+
+================================================================================
+  SEGMENT 4 — ALL STAFF  (1:30 – 1:50)
+================================================================================
+
+ACTION:
+  - Click "All Staff" in the sidebar
+  - Show the staff card grid with initials + photo
+  - Use the Performance Level dropdown to filter (e.g. "Top Performer")
+  - Use the Staff Member dropdown to select one person
+  - Click "View Full Profile" on any staff card
+
+WHAT TO SHOW:
+  - Staff photos on the right side of each card
+  - Filter dropdowns working together
+  - Card layout with score, progress bar, trend badge
+
+================================================================================
+  SEGMENT 5 — STAFF PROFILE  (1:50 – 2:20)
+================================================================================
+
+ACTION:
+  - Land on the staff profile (from clicking View Full Profile)
+  - Show the profile header: initials avatar + photo on right
+  - Point to the Performance Story (auto-generated narrative)
+  - Scroll to show the 3 charts:
+      * Performance Trend line chart (multi-year)
+      * Current Score gauge (doughnut)
+      * KPI Category radar chart
+  - Show the Strengths & Weaknesses progress bars
+  - Click "Add/Edit Comment" to open the modal
+  - Show the quick templates, select one
+  - Close the modal (don't save)
+
+WHAT TO SHOW:
+  - All 3 charts with storytelling text below each
+  - The Alpine.js comment modal with templates
+
+================================================================================
+  SEGMENT 6 — ANALYTICS  (2:20 – 2:50)
+================================================================================
+
+ACTION:
+  - Click "Analytics" in the sidebar
+  - Show the filter bar (Year, Department, Performance Level)
+  - Point to each of the 5 charts as they load:
+      1. Performance Distribution doughnut (year in centre)
+      2. Department Comparison bar chart
+      3. Multi-Year Trend line chart
+      4. KPI Category Averages radar chart
+      5. Score Distribution histogram
+  - Point to the storytelling insight below each chart
+  - Change the Department filter to show it updates
+
+WHAT TO SHOW:
+  - All 5 charts with dynamic storytelling
+  - The info tooltip on "Average Score" card
+
+================================================================================
+  SEGMENT 7 — REPORTS  (2:50 – 3:15)
+================================================================================
+
+ACTION:
+  - Click "Top Performers" in the sidebar
+  - Show the table of top performers with scores
+  - Click "At-Risk Staff"
+  - Show the at-risk table with risk levels and reasons
+  - Click "Training Needs"
+  - Show the training recommendations table
+  - Scroll down to show "Most Common Training Needs" with progress bars
+  - Change the year to 2022 to show historical data
+
+WHAT TO SHOW:
+  - Three different report types
+  - Most Common Training Needs keyword analysis with progress bars
+  - Export CSV button
+
+================================================================================
+  SEGMENT 8 — PREDICTIVE ALERTS (TensorFlow.js)  (3:15 – 3:45)
+================================================================================
+
+ACTION:
+  - Click "Predictive Alerts" in the sidebar
+  - Show the TensorFlow.js badge in the header
+  - Point to the threshold bar (Critical/High/Medium/Low ranges)
+  - Wait for the SweetAlert loading modal to appear and complete
+  - Show the 4 summary cards with counts and percentages
+  - Point to the alert cards (Critical/High/Medium) with recommendations
+  - Click the green "Low / Stable Staff" collapsed section to expand it
+  - Click "Re-run Predictions" to show the SweetAlert loading again
+
+WHAT TO SHOW:
+  - TF.js training in the browser (SweetAlert loading)
+  - Risk classification matching the threshold bar
+  - Collapsed Low/Stable section
+
+================================================================================
+  SEGMENT 9 — TRAINING RECOMMENDATIONS  (3:45 – 4:00)
+================================================================================
+
+ACTION:
+  - Click "Training Recommendations" in the sidebar
+  - Click "Generate Recommendations"
+  - Show a staff card with skill gap badges and match score
+  - Click "Edit Comment" on one staff member
+  - Show it redirects to the staff profile with the modal open
+  - Go back
+
+WHAT TO SHOW:
+  - Skill gap badges (Critical/Moderate/Minor)
+  - Match score percentage
+  - Edit Comment → staff profile flow
+
+================================================================================
+  SEGMENT 10 — ANOMALY DETECTION  (4:00 – 4:15)
+================================================================================
+
+ACTION:
+  - Click "Anomaly Detection" in the sidebar
+  - Select a staff member from the dropdown (e.g. Alice Johnson)
+  - Show the line chart with anomaly markers
+  - Point to the anomaly cards (Spike / Drop / Decline)
+  - Show the narrative insight text
+
+WHAT TO SHOW:
+  - Chart with visual anomaly markers
+  - Plain-English narrative explaining what happened
+
+================================================================================
+  SEGMENT 11 — PEER COMPARISON  (4:15 – 4:40)
+================================================================================
+
+ACTION:
+  - Click "Peer Comparison" in the sidebar
+  - Select a staff member (e.g. Emma Wilson)
+  - Set "Compare With" to "Auto-select Best Match"
+  - Click Compare
+  - Show the VS card layout with both staff scores (proper percentages)
+  - Point to the radar chart comparing KPI categories
+  - Show the similarity score and insights
+  - Change "Compare With" to "Specific Staff Member"
+  - Select a peer manually and compare again
+
+WHAT TO SHOW:
+  - Side-by-side comparison with animated VS badge
+  - Radar chart with two datasets
+  - Specific staff comparison option
+
+================================================================================
+  SEGMENT 12 — GAMIFICATION  (4:40 – 5:00)
+================================================================================
+
+ACTION:
+  - Click "Dashboard" in the sidebar
+  - Scroll to the gamified level distribution section
+  - OR navigate to the gamification page if accessible
+  - Show the podium (🥇🥈🥉) with top 3 staff
+  - Show the full leaderboard table with points and levels
+  - Show the badge showcase section
+
+WHAT TO SHOW:
+  - Animated counter on level cards
+  - Podium layout
+  - Points breakdown
+
+================================================================================
+  CLOSING  (5:00)
+================================================================================
+
+  End on the dashboard or the predictive alerts page.
+  The TF.js badge and the charts make a strong visual finish.
+
+================================================================================
+  TIMING SUMMARY
+================================================================================
+
+  0:00 – 0:20   Login
+  0:20 – 1:00   Dashboard
+  1:00 – 1:30   KPI Score Entry
+  1:30 – 1:50   All Staff
+  1:50 – 2:20   Staff Profile
+  2:20 – 2:50   Analytics
+  2:50 – 3:15   Reports
+  3:15 – 3:45   Predictive Alerts (TF.js)
+  3:45 – 4:00   Training Recommendations
+  4:00 – 4:15   Anomaly Detection
+  4:15 – 4:40   Peer Comparison
+  4:40 – 5:00   Gamification / Close
+
+================================================================================
+  TIPS
+================================================================================
+
+  - Use year 2026 for most demos (has the most complete data)
+  - Switch to 2022 for Training Needs to show historical data
+  - Have Alice Johnson's profile ready for Staff Profile demo
+  - Have Emma Wilson ready for Peer Comparison (at-risk, good contrast)
+  - Predictive Alerts takes ~5–10 seconds to train — let it run naturally
+  - Keep mouse movements slow and deliberate for screen recording clarity
+
+================================================================================

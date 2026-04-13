@@ -17,12 +17,12 @@ class KPICalculator {
      * @return array ['overall_score' => float, 'category_scores' => array]
      */
     public function calculateOverallScore($staff_id, $year) {
+        // Always recalculate from raw score + weight to avoid stale weighted_score values
         $sql = "SELECT 
                     km.kpi_code,
                     km.kpi_group,
                     km.weight_percentage,
-                    COALESCE(ks.score, 0) as score,
-                    COALESCE(ks.weighted_score, 0) as weighted_score
+                    COALESCE(ks.score, 0) as score
                 FROM kpi_master km
                 LEFT JOIN kpi_scores ks ON km.kpi_code = ks.kpi_code 
                     AND ks.staff_id = ? AND ks.evaluation_year = ?
@@ -45,8 +45,14 @@ class KPICalculator {
         $category_scores = [];
         
         foreach ($kpis as $kpi) {
-            $score = (float)$kpi['score'];
-            $weighted_score = (float)$kpi['weighted_score'];
+            $score  = (float)$kpi['score'];
+            $weight = (float)$kpi['weight_percentage'];
+            
+            // Correct formula: (score / 5) * (weight / 100)
+            // score is 1–5 scale; weight sums to 100 across all 21 KPIs
+            // Result per KPI is in range 0–0.2 (for a 10% weight KPI)
+            // Sum of all 21 = 0.0 – 1.0 → multiply by 100 for percentage
+            $weighted_score = ($score / 5) * ($weight / 100);
             
             if ($score > 0) {
                 $has_any_data = true;
@@ -54,24 +60,22 @@ class KPICalculator {
             }
             
             $category_scores[] = [
-                'kpi_code' => $kpi['kpi_code'],
-                'kpi_group' => $kpi['kpi_group'],
-                'category_name' => $kpi['kpi_group'], // Add alias for compatibility
-                'score' => $score,
-                'weight' => (float)$kpi['weight_percentage'],
-                'weighted_score' => $weighted_score
+                'kpi_code'      => $kpi['kpi_code'],
+                'kpi_group'     => $kpi['kpi_group'],
+                'category_name' => $kpi['kpi_group'],
+                'score'         => $score,
+                'weight'        => $weight,
+                'weighted_score'=> $weighted_score,
             ];
         }
         
-        // weighted_score per KPI = (score/5) * (weight_percentage/100)
-        // Sum of all weighted_scores is in range 0.0 – 1.0
-        // Multiply by 100 to get a 0–100% overall score
+        // overall_score % = SUM(weighted_scores) * 100
         $overall_score = $total_weighted_score * 100;
         
         return [
-            'overall_score' => round($overall_score, 2),
+            'overall_score'   => round($overall_score, 2),
             'category_scores' => $category_scores,
-            'has_data' => $has_any_data
+            'has_data'        => $has_any_data,
         ];
     }
     
@@ -386,35 +390,45 @@ class KPICalculator {
     /**
      * Compare staff performance against team average
      */
-    public function compareToTeamAverage($staff_id, $year) {
-        // Get staff score
+    public function compareToTeamAverage(int $staff_id, int $year): array {
         $staff_result = $this->calculateOverallScore($staff_id, $year);
-        $staff_score = $staff_result['overall_score'];
-        
-        // Get team average
-        $sql = "SELECT AVG(total_score) as team_avg
-                FROM (
-                    SELECT 
-                        ks.staff_id,
-                        SUM(ks.weighted_score) as total_score
-                    FROM kpi_scores ks
-                    WHERE ks.evaluation_year = ?
-                    GROUP BY ks.staff_id
-                ) as scores";
-        
+        $staff_score  = $staff_result['overall_score'];
+
+        // Recalculate team average from raw scores (not stored weighted_score)
+        $sql = "SELECT
+                    ks.staff_id,
+                    SUM((ks.score / 5) * (km.weight_percentage / 100)) AS correct_weighted
+                FROM kpi_scores ks
+                JOIN kpi_master km ON ks.kpi_code = km.kpi_code
+                WHERE ks.evaluation_year = ?
+                GROUP BY ks.staff_id";
+
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([$year]);
-        $result = $stmt->fetch();
-        $team_avg_raw = $result['team_avg'];
-        $team_avg = round($team_avg_raw * 100, 2); // weighted_score sum is 0-1, ×100 = %
-        
-        $difference = $staff_score - $team_avg;
-        
+        $rows = $stmt->fetchAll();
+
+        if (empty($rows)) {
+            return [
+                'staff_score'         => $staff_score,
+                'team_average'        => 0,
+                'difference'          => 0,
+                'performance_vs_team' => 'No Data',
+            ];
+        }
+
+        $team_avg = round(
+            (array_sum(array_column($rows, 'correct_weighted')) / count($rows)) * 100,
+            2
+        );
+
+        $difference = round($staff_score - $team_avg, 2);
+
         return [
-            'staff_score' => $staff_score,
-            'team_average' => $team_avg,
-            'difference' => round($difference, 2),
-            'performance_vs_team' => $difference > 0 ? 'Above Average' : ($difference < 0 ? 'Below Average' : 'Average')
+            'staff_score'         => $staff_score,
+            'team_average'        => $team_avg,
+            'difference'          => $difference,
+            'performance_vs_team' => $difference > 0 ? 'Above Average'
+                                   : ($difference < 0 ? 'Below Average' : 'Average'),
         ];
     }
 

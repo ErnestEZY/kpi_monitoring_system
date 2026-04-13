@@ -500,9 +500,10 @@ function getPredictiveAlerts($pdo) {
                 s.staff_code,
                 s.name as staff_name,
                 s.department,
-                SUM(ks.weighted_score) as current_score
+                ROUND(SUM((ks.score / 5) * (km.weight_percentage / 100)) * 100, 2) as current_score
             FROM staff s
             LEFT JOIN kpi_scores ks ON s.staff_id = ks.staff_id AND ks.evaluation_year = ?
+            LEFT JOIN kpi_master km ON ks.kpi_code = km.kpi_code
             WHERE s.status = 'Active'
             GROUP BY s.staff_id
             HAVING current_score IS NOT NULL
@@ -782,9 +783,10 @@ function getGamificationData($pdo) {
                 s.staff_code,
                 s.name,
                 s.department,
-                SUM(ks.weighted_score) as score
+                ROUND(SUM((ks.score / 5) * (km.weight_percentage / 100)) * 100, 2) as score
             FROM staff s
             JOIN kpi_scores ks ON s.staff_id = ks.staff_id
+            JOIN kpi_master km ON ks.kpi_code = km.kpi_code
             WHERE s.status = 'Active' AND ks.evaluation_year = ?
             GROUP BY s.staff_id
             ORDER BY score DESC
@@ -975,9 +977,10 @@ function getStaffData($pdo, $staff_id, $year) {
             s.staff_code,
             s.name,
             s.department,
-            SUM(ks.weighted_score) as score
+            ROUND(SUM((ks.score / 5) * (km.weight_percentage / 100)) * 100, 2) as score
         FROM staff s
         LEFT JOIN kpi_scores ks ON s.staff_id = ks.staff_id AND ks.evaluation_year = ?
+        LEFT JOIN kpi_master km ON ks.kpi_code = km.kpi_code
         WHERE s.staff_id = ?
         GROUP BY s.staff_id
     ");
@@ -988,8 +991,7 @@ function getStaffData($pdo, $staff_id, $year) {
         return null;
     }
     
-    // Convert weighted_score sum (0–1) to percentage (0–100)
-    $staff['score'] = round((float)$staff['score'] * 100, 2);
+    // score is already a proper percentage (0–100)
     
     // Get KPI breakdown by group
     $stmt = $pdo->prepare("
@@ -1057,10 +1059,11 @@ function getTopPerformer($pdo, $year) {
         SELECT s.staff_id
         FROM staff s
         JOIN kpi_scores ks ON s.staff_id = ks.staff_id
+        JOIN kpi_master km ON ks.kpi_code = km.kpi_code
         WHERE ks.evaluation_year = ? AND s.status = 'Active'
         GROUP BY s.staff_id
         HAVING COUNT(ks.score_id) > 0
-        ORDER BY SUM(ks.weighted_score) DESC
+        ORDER BY SUM((ks.score / 5) * (km.weight_percentage / 100)) DESC
         LIMIT 1
     ");
     $stmt->execute([$year]);
@@ -1072,8 +1075,9 @@ function getAveragePerformer($pdo, $year) {
 }
 
 function calculateSimilarity($staff1, $staff2) {
+    // Both scores are now 0–100 percentages
     $diff = abs($staff1['score'] - $staff2['score']);
-    $similarity = max(0, 100 - ($diff * 20));
+    $similarity = max(0, 100 - $diff);
     return round($similarity);
 }
 
@@ -1207,9 +1211,10 @@ function findSimilarPeers($pdo, $staff_id, $year) {
             s.staff_code,
             s.name,
             s.department,
-            SUM(ks.weighted_score) as score
+            ROUND(SUM((ks.score / 5) * (km.weight_percentage / 100)) * 100, 1) as score
         FROM staff s
         JOIN kpi_scores ks ON s.staff_id = ks.staff_id
+        JOIN kpi_master km ON ks.kpi_code = km.kpi_code
         WHERE s.staff_id != ? AND ks.evaluation_year = ?
         GROUP BY s.staff_id
         ORDER BY RAND()
@@ -1220,8 +1225,7 @@ function findSimilarPeers($pdo, $staff_id, $year) {
     
     foreach ($peers as &$peer) {
         $peer['similarity'] = rand(70, 95);
-        // Convert weighted_score sum (0–1) to percentage (0–100)
-        $peer['score'] = round((float)$peer['score'] * 100, 1);
+        // score is already a proper percentage from the query
     }
     
     return $peers;
@@ -1308,9 +1312,10 @@ function getAllTrends($pdo) {
                 s.name        AS staff_name,
                 s.department,
                 ks.evaluation_year,
-                ROUND(SUM(ks.weighted_score) * 100, 2) AS overall_score
+                ROUND(SUM((ks.score / 5) * (km.weight_percentage / 100)) * 100, 2) AS overall_score
             FROM staff s
             JOIN kpi_scores ks ON s.staff_id = ks.staff_id
+            JOIN kpi_master km ON ks.kpi_code = km.kpi_code
             WHERE s.status = 'Active'
             GROUP BY s.staff_id, ks.evaluation_year
             ORDER BY s.staff_id, ks.evaluation_year

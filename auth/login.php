@@ -181,7 +181,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
         
         <div class="text-center mt-3 text-white">
-            <small>&copy; 2025 Sales Assistant KPI Monitoring System</small>
+            <small>&copy; 2026 Sales Assistant KPI Monitoring System</small>
         </div>
     </div>
     

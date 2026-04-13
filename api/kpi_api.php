@@ -452,10 +452,12 @@ function saveScores(PDO $pdo): void {
 
         $pdo->commit();
 
-        // Return server-confirmed overall score
+        // Recalculate overall score from raw scores (correct formula)
         $row = $pdo->prepare(
-            "SELECT SUM(weighted_score) AS total FROM kpi_scores
-             WHERE staff_id = ? AND evaluation_year = ?"
+            "SELECT SUM((ks.score / 5) * (km.weight_percentage / 100)) AS total
+             FROM kpi_scores ks
+             JOIN kpi_master km ON ks.kpi_code = km.kpi_code
+             WHERE ks.staff_id = ? AND ks.evaluation_year = ?"
         );
         $row->execute([$staff_id, $evaluation_year]);
         $total = (float)($row->fetch()['total'] ?? 0);
