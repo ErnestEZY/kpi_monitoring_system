@@ -268,6 +268,24 @@ $pdo = getDBConnection();
    Input feature: normalised year index (0 → 1 over the data range)
    Output: predicted overall score (0–100 %)
    Confidence: 100 − (MAE on training set), clamped 50–99 %
+
+   References & Resources:
+   - TensorFlow.js official docs: https://www.tensorflow.org/js
+   - TF.js Layers API (tf.layers.dense, tf.sequential):
+       https://js.tensorflow.org/api/latest/#layers.dense
+   - Adam optimiser & MSE loss concepts:
+       https://www.tensorflow.org/js/guide/train_models
+   - Dense neural network architecture guidance:
+       https://developers.google.com/machine-learning/crash-course
+   - Normalisation technique (min-max scaling to [0,1]):
+       standard ML preprocessing — referenced from TF.js tutorials
+   - MAE confidence scoring: derived from model evaluation concepts
+       in the TF.js "Fit a model" guide
+   - ChatGPT (OpenAI) was used as a learning aid to understand
+       neural network concepts, layer configurations, activation
+       functions (ReLU vs Linear), and how to structure the
+       training loop in TensorFlow.js. The implementation was
+       written and adapted by the developer based on that learning.
    ============================================================ */
 
 let tfReady = false;

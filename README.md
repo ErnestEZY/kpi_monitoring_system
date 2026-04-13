@@ -2,10 +2,30 @@
 
 A web-based performance monitoring system for sales assistants, built with PHP, MySQL, Bootstrap 5, and TensorFlow.js.
 
-Student Information:
+Group 8 Student Information:
 Eh Zhong Yu (0139116)
 Lau Jin Yee (0139351)
 Chan Ming Jiang (M44100114)
+
+---
+
+## Post-Submission Bug Fixes & Improvements
+
+The following issues were identified and resolved after the initial submission:
+
+**Critical Bug — Weighted Score Calculation**
+The pre-loaded sample data in `kpi_scores` had `weighted_score` values calculated as
+`score × (weight/100)` instead of the correct `(score/5) × (weight/100)`, causing
+overall scores to display above 100% (e.g. 460%). The fix recalculates scores live
+from the raw `score` column and `weight_percentage` from `kpi_master`, bypassing the
+stored `weighted_score` entirely. All API endpoints were updated to use the same formula.
+
+**UX Improvements**
+- Staff profile year selector — narrative, charts, and scores now reflect the selected year
+- Empty state messages for all charts when no data exists for the selected year
+- Session persistence for Predictive Alerts and Training Recommendations
+- Assign Now button pre-fills the training recommendation field in the comment modal
+- Year parameter passed from dashboard and reports to staff profile links
 
 ---
 
